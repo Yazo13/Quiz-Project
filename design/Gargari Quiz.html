@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Gargari Quiz — Tournament Trivia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="tokens.css"/>
+
+<style>
+  html, body { margin: 0; padding: 0; background: #efe9dd; font-family: 'Space Grotesk', system-ui, sans-serif; color: var(--ink); }
+  *, *::before, *::after { box-sizing: border-box; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="home.jsx"></script>
+<script type="text/babel" src="quiz.jsx"></script>
+<script type="text/babel" src="leaderboard.jsx"></script>
+<script type="text/babel" src="wallet.jsx"></script>
+<script type="text/babel" src="result.jsx"></script>
+
+<script type="text/babel">
+const PHONE_W = 360;
+const PHONE_H = 780;
+
+function Frame({ children }) {
+  return (
+    <IOSDevice width={PHONE_W} height={PHONE_H}>
+      {children}
+    </IOSDevice>
+  );
+}
+
+function App() {
+  return (
+    <div data-screen-label="Gargari Quiz · Hi-Fi">
+      <DesignCanvas
+        title="Gargari Quiz"
+        subtitle="Tournament trivia · adventures theme · iOS hi-fi"
+      >
+        <DCSection id="core" title="Core Screens" subtitle="The 4 main surfaces — tap into any frame to focus">
+          <DCArtboard id="home" label="Home · The Arena" width={PHONE_W} height={PHONE_H}>
+            <Frame><HomeScreen/></Frame>
+          </DCArtboard>
+          <DCArtboard id="quiz" label="Quiz · Anti-Cheat" width={PHONE_W} height={PHONE_H}>
+            <Frame><QuizScreen/></Frame>
+          </DCArtboard>
+          <DCArtboard id="leaderboard" label="Leaderboard · Real-time" width={PHONE_W} height={PHONE_H}>
+            <Frame><LeaderboardScreen/></Frame>
+          </DCArtboard>
+          <DCArtboard id="wallet" label="Wallet & Store" width={PHONE_W} height={PHONE_H}>
+            <Frame><WalletScreen/></Frame>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="end-states" title="End States" subtitle="Win / loss screens with Lottie-style trophy & broken compass">
+          <DCArtboard id="win" label="Victory · Lottie-feel" width={PHONE_W} height={PHONE_H}>
+            <Frame><VictoryScreen/></Frame>
+          </DCArtboard>
+          <DCArtboard id="defeat" label="Defeat · Soft loss" width={PHONE_W} height={PHONE_H}>
+            <Frame><DefeatScreen/></Frame>
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+</body>
+</html>
