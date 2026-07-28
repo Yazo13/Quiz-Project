@@ -14,6 +14,7 @@ import {
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
 
+import { useHydrated } from '../src/store/game';
 import { color } from '../src/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -27,13 +28,18 @@ export default function RootLayout() {
     SpaceGrotesk_700Bold,
   });
 
+  // Reading the saved balance is fast, but not instant — without this the
+  // arena paints the starting 1,248 and then snaps to the real figure.
+  const hydrated = useHydrated();
+  const ready = (fontsLoaded || fontError) && hydrated;
+
   useEffect(() => {
     // The whole design is font-driven; showing it in the system face first
     // would reflow every screen, so hold the splash until the faces land.
-    if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {});
-  }, [fontsLoaded, fontError]);
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -18,6 +18,7 @@ import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
 import { ROUND_LENGTH, TIME_LIMIT, questionAt } from '../src/data/questions';
+import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
 
@@ -32,12 +33,25 @@ export default function QuizScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const finishRound = useGame((s) => s.finishRound);
+  const spend = useGame((s) => s.spend);
+
+  /** Answers struck out by the 50/50 power-up, cleared each question. */
+  const [struck, setStruck] = useState<number[]>([]);
+  const [powerShort, setPowerShort] = useState(false);
+
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
-  const [streak, setStreak] = useState(3);
+  // Carried in from previous rounds, so a hot streak survives leaving the quiz.
+  const [streak, setStreak] = useState(() => useGame.getState().streak);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
+
+  // The round's peak streak and per-question times both need to outlive the
+  // render that reads them, and neither should trigger one.
+  const bestStreak = useRef(useGame.getState().streak);
+  const times = useRef<number[]>([]);
 
   const question = questionAt(index);
 
@@ -57,6 +71,8 @@ export default function QuizScreen() {
   const timeOut = useCallback(() => {
     setRevealed(true);
     setStreak(0);
+    // A question left unanswered costs the full budget.
+    times.current.push(TIME_LIMIT * 1000);
     stopTimers();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   }, [stopTimers]);
@@ -98,10 +114,17 @@ export default function QuizScreen() {
     stopTimers();
     setSelected(i);
     setRevealed(true);
+    times.current.push(
+      TIME_LIMIT * 1000 - Math.max(0, deadline.current - Date.now()),
+    );
 
     if (i === question.correct) {
       setScore((s) => s + 1);
-      setStreak((s) => s + 1);
+      setStreak((s) => {
+        const next = s + 1;
+        bestStreak.current = Math.max(bestStreak.current, next);
+        return next;
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       setStreak(0);
@@ -111,15 +134,34 @@ export default function QuizScreen() {
 
   const next = () => {
     if (index + 1 >= ROUND_LENGTH) {
-      const finalScore = score;
-      router.replace(
-        `/result?outcome=${finalScore >= 6 ? 'win' : 'loss'}&correct=${finalScore}&streak=${streak}`,
-      );
+      const answered = times.current.length || 1;
+      const result = finishRound({
+        correct: score,
+        total: ROUND_LENGTH,
+        bestStreak: bestStreak.current,
+        avgMs: times.current.reduce((a, b) => a + b, 0) / answered,
+      });
+      router.replace(`/result?round=${result.id}`);
       return;
     }
     setSelected(null);
     setRevealed(false);
+    setStruck([]);
+    setPowerShort(false);
     setIndex((i) => i + 1);
+  };
+
+  // Strikes out two of the three wrong answers, leaving a coin flip.
+  const useFiftyFifty = () => {
+    if (revealed || struck.length) return;
+    if (!spend('powerup', POWERUP_COST)) {
+      setPowerShort(true);
+      return;
+    }
+    const wrong = [0, 1, 2, 3].filter((i) => i !== question.correct);
+    const drop = wrong.sort(() => Math.random() - 0.5).slice(0, 2);
+    setStruck(drop);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const correctPicked = selected === question.correct;
@@ -276,6 +318,7 @@ export default function QuizScreen() {
             const letter = ['A', 'B', 'C', 'D'][i];
             const isCorrect = revealed && i === question.correct;
             const isWrong = revealed && selected === i && i !== question.correct;
+            const isStruck = struck.includes(i);
 
             let bg: string = color.surface;
             let fg: string = color.ink;
@@ -297,13 +340,13 @@ export default function QuizScreen() {
             }
 
             return (
-              <View key={answer} style={{ width: '48%' }}>
+              <View key={answer} style={{ width: '48%', opacity: isStruck ? 0.3 : 1 }}>
                 <Tactile
                   height={86}
                   // A and D sharp, B and C soft — the alternating radius rule.
                   radius={i === 0 || i === 3 ? radius.sharp : radius.soft}
                   background={bg}
-                  disabled={revealed}
+                  disabled={revealed || isStruck}
                   silent
                   onPress={() => choose(i)}
                 >
@@ -358,13 +401,19 @@ export default function QuizScreen() {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Coin size={18} />
-              <UI size={13} weight="semibold" color={color.ink2}>
-                50/50 power-up · 25 tokens
+              <UI size={13} weight="semibold" color={powerShort ? color.coral : color.ink2}>
+                {powerShort
+                  ? 'Not enough tokens'
+                  : struck.length
+                    ? '50/50 used'
+                    : `50/50 power-up · ${POWERUP_COST} tokens`}
               </UI>
             </View>
             <Pressable
+              onPress={useFiftyFifty}
+              disabled={struck.length > 0}
               style={{
-                backgroundColor: color.ink,
+                backgroundColor: struck.length ? color.ink4 : color.ink,
                 paddingHorizontal: 12,
                 paddingVertical: 6,
               }}
@@ -403,7 +452,7 @@ export default function QuizScreen() {
               <View style={{ flex: 1 }}>
                 <Display size={20} color={correctPicked ? color.gold : color.coral}>
                   {correctPicked
-                    ? '+120 pts · Correct!'
+                    ? `+${roundPoints(1)} pts · Correct!`
                     : selected === null
                       ? 'Time out'
                       : 'Wrong'}

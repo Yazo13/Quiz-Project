@@ -6,8 +6,30 @@ import * as Haptics from 'expo-haptics';
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Coin } from '../../src/components/Primitives';
 import { Tactile, TactileSurface, tactileLabel } from '../../src/components/Tactile';
+import { relative } from '../../src/lib/time';
+import { TxKind, useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
+
+/** Tokens per US dollar, taken from the headline $9.99 / 1,200 pack. */
+const TOKENS_PER_DOLLAR = 120;
+
+const txLabel: Record<TxKind, string> = {
+  entry: 'Tournament entry',
+  reward: 'Round reward',
+  consolation: 'Consolation',
+  pack: 'Token pack',
+  powerup: 'Power-up · 50/50',
+  daily: 'Daily check-in',
+};
+
+function whenLabel(at: number) {
+  const { unit, value } = relative(at);
+  if (unit === 'now') return 'just now';
+  if (unit === 'minute') return `${value}m ago`;
+  if (unit === 'hour') return `${value}h ago`;
+  return value === 1 ? 'yesterday' : `${value}d ago`;
+}
 
 type PackVariant = 'paper' | 'gold' | 'forest' | 'coral';
 
@@ -33,18 +55,21 @@ const packStyles: Record<PackVariant, { bg: string; fg: string; r: number }> = {
   coral: { bg: color.coral, fg: color.white, r: radius.soft },
 };
 
-const activity = [
-  { label: 'Tournament entry · Tsinandali', amount: -50, when: '2m ago' },
-  { label: 'Streak bonus ×3', amount: 120, when: '5m ago' },
-  { label: 'Pack · 1,200', amount: 1200, when: '1h ago' },
-  { label: 'Speed run reward', amount: 35, when: '3h ago' },
-  { label: 'Power-up · 50/50', amount: -25, when: '3h ago' },
-  { label: 'Daily check-in', amount: 10, when: 'yesterday' },
-];
-
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<'store' | 'activity'>('store');
+
+  const tokens = useGame((s) => s.tokens);
+  const ledger = useGame((s) => s.ledger);
+  const credit = useGame((s) => s.credit);
+  const weekly = useWeeklyEarned();
+
+  const buy = (amount: number) => {
+    // Standing in for the real IAP call, which needs a development build.
+    credit('pack', amount, amount.toLocaleString());
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setMode('activity');
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -102,19 +127,26 @@ export default function WalletScreen() {
               </Eyebrow>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginTop: 4 }}>
                 <Display size={64} color={color.gold} style={{ fontVariant: ['tabular-nums'] }}>
-                  1,248
+                  {tokens.toLocaleString()}
                 </Display>
                 <View style={{ paddingBottom: 8 }}>
                   <Coin size={22} />
                 </View>
               </View>
               <UI size={12} weight="semibold" color="rgba(255,255,255,0.7)" style={{ marginTop: 6 }}>
-                ≈ $9.99 · Earned 240 this week
+                ≈ ${(tokens / TOKENS_PER_DOLLAR).toFixed(2)} · Earned{' '}
+                {weekly.toLocaleString()} this week
               </UI>
 
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
                 <View style={{ flex: 1 }}>
-                  <Tactile variant="gold" height={44} radius={radius.sharp} borderWidth={border.medium}>
+                  <Tactile
+                    variant="gold"
+                    height={44}
+                    radius={radius.sharp}
+                    borderWidth={border.medium}
+                    onPress={() => setMode('store')}
+                  >
                     <Text style={[tactileLabel, { fontSize: 13, color: color.ink }]}>＋ TOP UP</Text>
                   </Tactile>
                 </View>
@@ -237,7 +269,7 @@ export default function WalletScreen() {
                         </View>
 
                         <Pressable
-                          onPress={() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)}
+                          onPress={() => buy(p.tokens)}
                           style={{
                             height: 36,
                             marginTop: 10,
@@ -347,12 +379,28 @@ export default function WalletScreen() {
             <Display size={22} style={{ marginBottom: 10 }}>
               Recent activity
             </Display>
+            {ledger.length === 0 ? (
+              <TactileSurface radius={radius.sharp}>
+                <View style={{ paddingHorizontal: 14, paddingVertical: 28, alignItems: 'center' }}>
+                  <Display size={22} color={color.ink3}>
+                    Nothing yet
+                  </Display>
+                  <UI
+                    size={12}
+                    color={color.ink3}
+                    style={{ marginTop: 4, textAlign: 'center' }}
+                  >
+                    Enter a tournament or buy a pack and it shows up here.
+                  </UI>
+                </View>
+              </TactileSurface>
+            ) : (
             <TactileSurface radius={radius.sharp}>
-              {activity.map((a, i) => {
+              {ledger.map((a, i) => {
                 const positive = a.amount > 0;
                 return (
                   <View
-                    key={a.label}
+                    key={a.id}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -378,10 +426,11 @@ export default function WalletScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <UI size={13} weight="bold">
-                        {a.label}
+                        {txLabel[a.kind]}
+                        {a.detail ? ` · ${a.detail}` : ''}
                       </UI>
                       <UI size={11} color={color.ink3}>
-                        {a.when}
+                        {whenLabel(a.at)}
                       </UI>
                     </View>
                     <Display size={20} color={positive ? color.forest : color.coral}>
@@ -392,6 +441,7 @@ export default function WalletScreen() {
                 );
               })}
             </TactileSurface>
+            )}
           </View>
         )}
       </ScrollView>

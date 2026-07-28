@@ -2,6 +2,9 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // The node:test suites import with an explicit .ts extension, which is
+    // what Node's ESM loader resolves under --experimental-strip-types.
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./src/*"]
     }

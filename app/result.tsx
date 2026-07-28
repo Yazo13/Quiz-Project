@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,19 +10,37 @@ import { MeshBackground } from '../src/components/MeshBackground';
 import { Coin, DottedRule } from '../src/components/Primitives';
 import { Tactile, TactileSurface, tactileLabel } from '../src/components/Tactile';
 import { ROUND_LENGTH } from '../src/data/questions';
+import { ENTRY_COST, WIN_THRESHOLD, useGame } from '../src/store/game';
 import { color, radius, screenPad } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
 
 export default function ResultScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ outcome?: string; correct?: string; streak?: string }>();
+  const params = useLocalSearchParams<{ round?: string; outcome?: string }>();
 
-  const won = params.outcome !== 'loss';
-  const correct = Number(params.correct ?? (won ? 9 : 4));
-  const streak = Number(params.streak ?? (won ? 7 : 0));
-  const avgTime = won ? '4.2s' : '4.8s';
-  const reward = won ? 480 : 15;
+  const rounds = useGame((s) => s.rounds);
+  const spend = useGame((s) => s.spend);
+  const [short, setShort] = useState(false);
+
+  // A real round arrives by id. The profile's two preview buttons pass an
+  // outcome instead, so the screen can be seen without playing.
+  const round = params.round ? rounds.find((r) => r.id === params.round) : undefined;
+  const won = round ? round.correct >= WIN_THRESHOLD : params.outcome !== 'loss';
+
+  const correct = round?.correct ?? (won ? 9 : 4);
+  const total = round?.total ?? ROUND_LENGTH;
+  const streak = round?.bestStreak ?? (won ? 7 : 0);
+  const avgTime = `${((round?.avgMs ?? (won ? 4200 : 4800)) / 1000).toFixed(1)}s`;
+  const reward = round?.earned ?? (won ? 480 : 15);
+
+  const retry = () => {
+    if (!spend('entry', ENTRY_COST, 'Retry')) {
+      setShort(true);
+      return;
+    }
+    router.replace('/quiz');
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -75,7 +94,7 @@ export default function ResultScreen() {
             <View style={{ paddingHorizontal: 18, paddingVertical: 16 }}>
               <View style={{ flexDirection: 'row' }}>
                 {[
-                  { v: `${correct} / ${ROUND_LENGTH}`, l: 'Correct' },
+                  { v: `${correct} / ${total}`, l: 'Correct' },
                   { v: `×${streak}`, l: 'Streak', tint: color.coral },
                   { v: avgTime, l: 'Avg time' },
                 ].map((s) => (
@@ -136,13 +155,19 @@ export default function ResultScreen() {
 
         <View style={{ width: '100%', gap: 10 }}>
           <Tactile
-            variant={won ? 'coral' : 'forest'}
+            variant={won ? 'coral' : short ? 'paper' : 'forest'}
             height={56}
             radius={radius.sharp}
-            onPress={() => (won ? router.replace('/') : router.replace('/quiz'))}
+            onPress={won ? () => router.replace('/') : retry}
           >
-            <Text style={[tactileLabel, { color: color.white }]}>
-              {won ? 'Claim & continue' : 'Try again · 50'}
+            <Text
+              style={[tactileLabel, { color: short && !won ? color.ink : color.white }]}
+            >
+              {won
+                ? 'Claim & continue'
+                : short
+                  ? 'Not enough tokens'
+                  : `Try again · ${ENTRY_COST}`}
             </Text>
             {won ? (
               <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">

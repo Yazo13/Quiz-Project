@@ -5,14 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, DottedRule, Fire } from '../../src/components/Primitives';
 import { Tactile, TactileSurface, tactileLabel } from '../../src/components/Tactile';
+import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
+import { useAccuracy, useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
-
-const stats = [
-  { value: '148', label: 'Rounds' },
-  { value: '×5', label: 'Streak', tint: color.coral },
-  { value: '84%', label: 'Accuracy' },
-];
 
 const trophies = [
   { title: 'Kakheti Grand · 3rd', when: 'May 2026', tint: color.gold2 },
@@ -23,6 +19,21 @@ const trophies = [
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const rounds = useGame((s) => s.rounds.length);
+  const streak = useGame((s) => s.streak);
+  const resetProgress = useGame((s) => s.resetProgress);
+  const accuracy = useAccuracy();
+  const { me } = useStandings();
+
+  const stats = [
+    { value: String(rounds), label: 'Rounds' },
+    { value: `×${streak}`, label: 'Streak', tint: color.coral },
+    {
+      value: accuracy === null ? '—' : `${Math.round(accuracy * 100)}%`,
+      label: 'Accuracy',
+    },
+  ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -44,17 +55,17 @@ export default function ProfileScreen() {
           <TactileSurface radius={radius.soft}>
             <View style={{ padding: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Avatar initials="DG" background={color.coral} size={56} />
+                <Avatar initials={PLAYER_INITIALS} background={color.coral} size={56} />
                 <View style={{ flex: 1 }}>
-                  <Display size={26}>Davit G.</Display>
+                  <Display size={26}>{PLAYER_NAME}</Display>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                    <Fire size={12} />
-                    <UI size={12} weight="bold" color={color.coral}>
-                      5 round streak
+                    {streak > 0 && <Fire size={12} />}
+                    <UI size={12} weight="bold" color={streak > 0 ? color.coral : color.ink3}>
+                      {streak > 0 ? `${streak} answer streak` : 'No streak yet'}
                     </UI>
                   </View>
                 </View>
-                <Chip label="Rank #6" background={color.ink} foreground={color.gold} />
+                <Chip label={`Rank #${me.rank}`} background={color.ink} foreground={color.gold} />
               </View>
 
               <DottedRule style={{ marginVertical: 14 }} />
@@ -138,6 +149,17 @@ export default function ProfileScreen() {
             onPress={() => router.push('/result?outcome=loss')}
           >
             <Text style={[tactileLabel, { color: color.ink }]}>Defeat screen</Text>
+          </Tactile>
+        </View>
+
+        {/* Wipes the persisted balance, history and ledger back to the
+            starting state — the only way to replay the economy from zero. */}
+        <View style={{ paddingHorizontal: screenPad, paddingTop: 24 }}>
+          <Eyebrow size={11} style={{ marginBottom: 10 }}>
+            Danger zone
+          </Eyebrow>
+          <Tactile height={48} radius={radius.sharp} onPress={resetProgress}>
+            <Text style={[tactileLabel, { color: color.coral }]}>Reset progress</Text>
           </Tactile>
         </View>
       </ScrollView>

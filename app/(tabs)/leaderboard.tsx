@@ -5,32 +5,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, Fire, LiveDot } from '../../src/components/Primitives';
 import { TactileSurface } from '../../src/components/Tactile';
+import { useStandings } from '../../src/data/standings';
+import { useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
-
-const podium = [
-  { rank: 2, name: 'Nino K.', pts: 8420, streak: 7, tint: color.coral, initials: 'NK' },
-  { rank: 1, name: 'Lasha M.', pts: 9180, streak: 12, tint: color.gold, initials: 'LM' },
-  { rank: 3, name: 'Tako J.', pts: 7964, streak: 4, tint: color.forest, initials: 'TJ' },
-];
-
-// Accuracy is part of the record rather than generated at render time, so a
-// re-render doesn't reshuffle everyone's stats.
-const ranks = [
-  { rank: 4, name: 'Giorgi P.', pts: 7210, streak: 3, accuracy: 78, tint: color.sky2, initials: 'GP' },
-  { rank: 5, name: 'Mariam V.', pts: 6890, streak: 0, accuracy: 71, tint: '#5A3540', initials: 'MV' },
-  { rank: 6, name: 'Davit G.', pts: 6422, streak: 5, accuracy: 84, tint: color.coral, initials: 'DG', you: true },
-  { rank: 7, name: 'Salome B.', pts: 6201, streak: 2, accuracy: 69, tint: color.forest, initials: 'SB' },
-  { rank: 8, name: 'Irakli D.', pts: 5984, streak: 0, accuracy: 66, tint: '#8E5A1B', initials: 'ID' },
-  { rank: 9, name: 'Anna L.', pts: 5712, streak: 8, accuracy: 88, tint: '#3F5F4A', initials: 'AL' },
-  { rank: 10, name: 'Beka R.', pts: 5503, streak: 1, accuracy: 62, tint: '#7E2D26', initials: 'BR' },
-];
 
 const filters = ['today', 'weekly', 'grand', 'friends'];
 
 export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState('today');
+
+  const lastRound = useGame((s) => s.rounds[0]);
+  const { board, me, ahead } = useStandings();
+
+  // Visual order puts second on the left, first raised in the middle.
+  const podium = [board[1], board[0], board[2]];
+  const list = board.slice(3);
 
   return (
     <View style={{ flex: 1 }}>
@@ -87,22 +78,24 @@ export default function LeaderboardScreen() {
               }}
             >
               <Display size={56} color={color.gold} style={{ lineHeight: 48 }}>
-                #6
+                #{me.rank}
               </Display>
               <View style={{ flex: 1 }}>
                 <Eyebrow size={11} color="rgba(255,255,255,0.6)">
                   Your rank
                 </Eyebrow>
                 <Display size={22} color={color.white}>
-                  +2 from last hour
+                  {lastRound ? `+${lastRound.points} last round` : 'Play your first round'}
                 </Display>
                 <UI size={11} weight="semibold" color="rgba(255,255,255,0.7)" style={{ marginTop: 2 }}>
-                  468 pts to overtake Mariam V.
+                  {ahead
+                    ? `${(ahead.pts - me.pts).toLocaleString()} pts to overtake ${ahead.name}`
+                    : 'Nobody left to catch'}
                 </UI>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Display size={24} color={color.white} style={{ fontVariant: ['tabular-nums'] }}>
-                  6,422
+                  {me.pts.toLocaleString()}
                 </Display>
                 <Eyebrow size={9} color="rgba(255,255,255,0.6)">
                   Points
@@ -148,7 +141,7 @@ export default function LeaderboardScreen() {
             const medal = first ? color.gold : p.rank === 2 ? '#C8C8D0' : color.gold2;
 
             return (
-              <View key={p.rank} style={{ flex: first ? 1.2 : 1, alignItems: 'center' }}>
+              <View key={p.name} style={{ flex: first ? 1.2 : 1, alignItems: 'center' }}>
                 <View style={{ marginBottom: 8 }}>
                   <Avatar initials={p.initials} background={p.tint} size={first ? 64 : 50} />
                   {p.streak >= 5 && (
@@ -207,9 +200,9 @@ export default function LeaderboardScreen() {
         {/* Rank list */}
         <View style={{ paddingHorizontal: screenPad, paddingTop: 20 }}>
           <TactileSurface radius={radius.soft}>
-            {ranks.map((p, i) => (
+            {list.map((p, i) => (
               <View
-                key={p.rank}
+                key={p.name}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',

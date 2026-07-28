@@ -18,8 +18,12 @@ import {
 import { Tactile, TactileSurface, tactileLabel } from '../../src/components/Tactile';
 import { TokenBalance } from '../../src/components/TokenBalance';
 import { formatHMS, useCountdown } from '../../src/hooks/useCountdown';
+import { ENTRY_COST, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
+
+/** The one tournament the arena currently features. */
+const GRAND_ID = 'grand-tsinandali';
 
 const categories = [
   { id: 'travel', label: 'Travel', glyph: '✈', tint: color.coralSoft, prizes: '12 prizes' },
@@ -40,6 +44,35 @@ export default function ArenaScreen() {
   const total = useCountdown(3 * 3600 + 47 * 60 + 22);
   const { h, m, s } = formatHMS(total);
   const [category, setCategory] = useState('travel');
+
+  const tokens = useGame((s) => s.tokens);
+  const joined = useGame((s) => s.joined.includes(GRAND_ID));
+  const joinTournament = useGame((s) => s.joinTournament);
+  const spend = useGame((s) => s.spend);
+  const [short, setShort] = useState(false);
+
+  // The seat is bought once; entering again afterwards is free.
+  const enterGrand = () => {
+    if (joined || joinTournament(GRAND_ID, ENTRY_COST, 'Tsinandali')) {
+      router.push('/quiz');
+      return;
+    }
+    setShort(true);
+  };
+
+  const enterBattle = (title: string) => {
+    if (!spend('entry', ENTRY_COST, title)) {
+      setShort(true);
+      return;
+    }
+    router.push('/quiz');
+  };
+
+  const seatLabel = joined
+    ? 'Enter Tournament'
+    : short && tokens < ENTRY_COST
+      ? 'Not enough tokens'
+      : `Reserve Seat · ${ENTRY_COST}`;
 
   return (
     <View style={{ flex: 1 }}>
@@ -69,7 +102,7 @@ export default function ArenaScreen() {
               </UI>
             </View>
           </View>
-          <TokenBalance amount={1248} onPress={() => router.push('/wallet')} />
+          <TokenBalance amount={tokens} onPress={() => router.push('/wallet')} />
         </View>
 
         {/* Hero */}
@@ -201,10 +234,10 @@ export default function ArenaScreen() {
                 variant="forest"
                 height={52}
                 radius={radius.sharp}
-                onPress={() => router.push('/quiz')}
+                onPress={enterGrand}
               >
-                <Text style={[tactileLabel, { color: color.white }]}>Reserve Seat · 50</Text>
-                <Coin size={16} />
+                <Text style={[tactileLabel, { color: color.white }]}>{seatLabel}</Text>
+                {!joined && <Coin size={16} />}
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
                   <Path
                     d="M5 12h14m-6-6l6 6-6 6"
@@ -303,7 +336,7 @@ export default function ArenaScreen() {
 
           <View style={{ gap: 10 }}>
             {battles.map((b, i) => (
-              <Pressable key={b.title} onPress={() => router.push('/quiz')}>
+              <Pressable key={b.title} onPress={() => enterBattle(b.title)}>
                 <View
                   style={{
                     borderWidth: border.medium,
