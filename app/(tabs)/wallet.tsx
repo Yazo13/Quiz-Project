@@ -125,7 +125,8 @@ export default function WalletScreen() {
                     depth={0}
                     background="transparent"
                     borderWidth={border.medium}
-                    style={{ opacity: 0.9 }}
+                    // The ink border would vanish against the dark card.
+                    borderColor="rgba(255,255,255,0.5)"
                   >
                     <Text style={[tactileLabel, { fontSize: 13, color: color.white }]}>CASH OUT</Text>
                   </Tactile>

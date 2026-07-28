@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   Easing,
   runOnJS,
@@ -13,6 +14,7 @@ import Animated, {
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { EstateScene } from '../src/components/EstateScene';
+import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
 import { ROUND_LENGTH, TIME_LIMIT, questionAt } from '../src/data/questions';
@@ -124,6 +126,8 @@ export default function QuizScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: color.bgPaper }}>
+      <MeshBackground />
+
       {/* Depleting progress bar — the whole screen's clock */}
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 16 }}>
         <View
@@ -239,6 +243,11 @@ export default function QuizScreen() {
               </Eyebrow>
             </View>
 
+            {/* Scrim — the media ID has to stay legible over any image */}
+            <LinearGradient
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.45)']}
+              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 44 }}
+            />
             <View
               style={{
                 position: 'absolute',

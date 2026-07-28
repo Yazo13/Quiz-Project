@@ -8,19 +8,20 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { color, mesh } from '../theme/tokens';
 
 /**
  * The "subtle moving mesh gradient" from the brief.
  *
- * CSS gets this from four `radial-gradient(at x% y%, …)` layers drifting via
- * background-position. RN has no radial gradient primitive, so each blob is
- * an oversized circular View with a LinearGradient fading to transparent,
- * blurred by its own scale — soft enough that the seams don't read.
+ * CSS builds this from four stacked `radial-gradient(at x% y%, …)` layers
+ * drifting via background-position. The RN equivalent is one SVG radial
+ * gradient per blob — a linear gradient inside a circular View looks close
+ * in a mockup but leaves a visible straight edge where the stops run out,
+ * which reads as a seam rather than a haze.
  *
- * The whole field breathes on an 18s loop, matching @keyframes meshDrift.
+ * The field breathes on an 18s loop, matching @keyframes meshDrift.
  */
 export function MeshBackground({ dim = false }: { dim?: boolean }) {
   const { width, height } = useWindowDimensions();
@@ -34,18 +35,21 @@ export function MeshBackground({ dim = false }: { dim?: boolean }) {
     );
   }, [t]);
 
-  const drift = useAnimatedStyle(() => ({
+  const breathe = useAnimatedStyle(() => ({
     transform: [{ scale: 1 + t.value * 0.04 }],
   }));
 
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: color.bgPaper, overflow: 'hidden' }]}>
-      <Animated.View style={[StyleSheet.absoluteFill, drift]}>
+    <View
+      style={[StyleSheet.absoluteFill, { backgroundColor: color.bgPaper, overflow: 'hidden' }]}
+      pointerEvents="none"
+    >
+      <Animated.View style={[StyleSheet.absoluteFill, breathe]}>
         {mesh.map((blob, i) => {
           const size = Math.max(width, height) * blob.size;
           return (
             <MeshBlob
-              key={i}
+              key={blob.color}
               tint={blob.color}
               size={size}
               left={width * blob.x - size / 2}
@@ -56,10 +60,10 @@ export function MeshBackground({ dim = false }: { dim?: boolean }) {
           );
         })}
       </Animated.View>
+
       {dim && (
         <View
-          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(24,21,18,0.06)' }]}
-          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(24,21,18,0.05)' }]}
         />
       )}
     </View>
@@ -81,35 +85,29 @@ function MeshBlob({
   phase: number;
   t: SharedValue<number>;
 }) {
-  // Alternating drift directions keep the blobs from moving as one block,
-  // which is what makes the field read as "alive" rather than as a zoom.
-  const dir = phase % 2 === 0 ? 1 : -1;
+  // Each blob drifts on its own vector, so the field never moves as one
+  // block — that difference is what makes it read as alive.
+  const dx = phase % 2 === 0 ? 1 : -1;
+  const dy = phase < 2 ? 1 : -1;
 
-  const move = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: t.value * 24 * dir },
-      { translateY: t.value * 18 * (phase < 2 ? 1 : -1) },
-    ],
+  const drift = useAnimatedStyle(() => ({
+    transform: [{ translateX: t.value * 26 * dx }, { translateY: t.value * 20 * dy }],
   }));
 
+  const id = `mesh-${tint.slice(1)}`;
+
   return (
-    <Animated.View
-      style={[{ position: 'absolute', left, top, width: size, height: size }, move]}
-      pointerEvents="none"
-    >
-      <LinearGradient
-        colors={[tint, withAlpha(tint, 0.55), 'rgba(242,233,213,0)']}
-        locations={[0, 0.45, 1]}
-        start={{ x: 0.35, y: 0.3 }}
-        end={{ x: 0.9, y: 1 }}
-        style={{ width: size, height: size, borderRadius: size / 2, opacity: 0.85 }}
-      />
+    <Animated.View style={[{ position: 'absolute', left, top, width: size, height: size }, drift]}>
+      <Svg width={size} height={size}>
+        <Defs>
+          <RadialGradient id={id} cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={tint} stopOpacity="0.95" />
+            <Stop offset="0.45" stopColor={tint} stopOpacity="0.55" />
+            <Stop offset="1" stopColor={tint} stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Rect width={size} height={size} fill={`url(#${id})`} />
+      </Svg>
     </Animated.View>
   );
-}
-
-/** #RRGGBB → rgba(), so the blob can fade out on its own hue. */
-function withAlpha(hex: string, alpha: number) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }

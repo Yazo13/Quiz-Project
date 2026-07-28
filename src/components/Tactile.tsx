@@ -43,6 +43,8 @@ interface SurfaceProps {
   radius?: number;
   background?: string;
   borderWidth?: number;
+  /** Only override on dark surfaces, where the ink border disappears. */
+  borderColor?: string;
   /** 0 turns the hard shadow off. */
   depth?: number;
   style?: StyleProp<ViewStyle>;
@@ -54,6 +56,7 @@ export function TactileSurface({
   radius: r = radius.sharp,
   background = color.surface,
   borderWidth = border.thick,
+  borderColor = color.lineStrong,
   depth = DEPTH,
   style,
 }: SurfaceProps) {
@@ -64,7 +67,7 @@ export function TactileSurface({
         style={[
           {
             borderWidth,
-            borderColor: color.lineStrong,
+            borderColor,
             borderRadius: r,
             backgroundColor: background,
             overflow: 'hidden',
@@ -111,6 +114,7 @@ export function Tactile({
   height = 56,
   depth = DEPTH,
   borderWidth = border.thick,
+  borderColor = color.lineStrong,
   background,
   disabled,
   silent,
@@ -172,7 +176,7 @@ export function Tactile({
             {
               height,
               borderWidth,
-              borderColor: color.lineStrong,
+              borderColor,
               borderRadius: r,
               backgroundColor: background ?? v.bg,
               alignItems: 'center',
