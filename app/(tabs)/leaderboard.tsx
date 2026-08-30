@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -6,15 +6,18 @@ import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, Fire, LiveDot } from '../../src/components/Primitives';
 import { TactileSurface } from '../../src/components/Tactile';
 import { useStandings } from '../../src/data/standings';
+import { useT } from '../../src/i18n';
+import { group } from '../../src/lib/number';
 import { useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
-const filters = ['today', 'weekly', 'grand', 'friends'];
+const filters = ['today', 'weekly', 'grand', 'friends'] as const;
 
 export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
-  const [filter, setFilter] = useState('today');
+  const [filter, setFilter] = useState<(typeof filters)[number]>('today');
+  const t = useT();
 
   const lastRound = useGame((s) => s.rounds[0]);
   const { board, me, ahead } = useStandings();
@@ -41,9 +44,9 @@ export default function LeaderboardScreen() {
           }}
         >
           <View>
-            <Eyebrow size={11}>Live Standings</Eyebrow>
+            <Eyebrow size={11}>{t.leaderboard.eyebrow}</Eyebrow>
             <Display size={34} style={{ marginTop: 2 }}>
-              Leaderboard
+              {t.leaderboard.title}
             </Display>
           </View>
           <View
@@ -61,7 +64,7 @@ export default function LeaderboardScreen() {
             }}
           >
             <LiveDot size={7} />
-            <Eyebrow size={10}>Live</Eyebrow>
+            <Eyebrow size={10}>{t.leaderboard.live}</Eyebrow>
           </View>
         </View>
 
@@ -82,23 +85,23 @@ export default function LeaderboardScreen() {
               </Display>
               <View style={{ flex: 1 }}>
                 <Eyebrow size={11} color="rgba(255,255,255,0.6)">
-                  Your rank
+                  {t.leaderboard.yourRank}
                 </Eyebrow>
                 <Display size={22} color={color.white}>
-                  {lastRound ? `+${lastRound.points} last round` : 'Play your first round'}
+                  {lastRound ? t.leaderboard.lastRound(lastRound.points) : t.leaderboard.noRounds}
                 </Display>
                 <UI size={11} weight="semibold" color="rgba(255,255,255,0.7)" style={{ marginTop: 2 }}>
                   {ahead
-                    ? `${(ahead.pts - me.pts).toLocaleString()} pts to overtake ${ahead.name}`
-                    : 'Nobody left to catch'}
+                    ? t.leaderboard.toOvertake(ahead.pts - me.pts, ahead.name)
+                    : t.leaderboard.leading}
                 </UI>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Display size={24} color={color.white} style={{ fontVariant: ['tabular-nums'] }}>
-                  {me.pts.toLocaleString()}
+                  {group(me.pts)}
                 </Display>
                 <Eyebrow size={9} color="rgba(255,255,255,0.6)">
-                  Points
+                  {t.leaderboard.points}
                 </Eyebrow>
               </View>
             </View>
@@ -116,7 +119,7 @@ export default function LeaderboardScreen() {
             return (
               <Pressable key={f} onPress={() => setFilter(f)}>
                 <Chip
-                  label={f}
+                  label={t.leaderboard.filters[f]}
                   background={active ? color.coral : color.surface}
                   foreground={active ? color.white : color.ink}
                 />
@@ -154,7 +157,7 @@ export default function LeaderboardScreen() {
                   {p.name}
                 </UI>
                 <Display size={18} style={{ fontVariant: ['tabular-nums'] }}>
-                  {p.pts.toLocaleString()}
+                  {group(p.pts)}
                 </Display>
 
                 {/* Plinth — open at the bottom, it runs off the screen edge */}
@@ -231,7 +234,7 @@ export default function LeaderboardScreen() {
                     </UI>
                     {p.you && (
                       <Chip
-                        label="You"
+                        label={t.leaderboard.you}
                         size={9}
                         background={color.coral}
                         foreground={color.white}
@@ -261,18 +264,16 @@ export default function LeaderboardScreen() {
                       </>
                     )}
                     <UI size={11} color={color.ink3}>
-                      {p.accuracy}% accuracy
+                      {t.leaderboard.accuracy(p.accuracy)}
                     </UI>
                   </View>
                 </View>
 
                 <View style={{ alignItems: 'flex-end' }}>
                   <Display size={20} style={{ fontVariant: ['tabular-nums'] }}>
-                    {p.pts.toLocaleString()}
+                    {group(p.pts)}
                   </Display>
-                  <Eyebrow size={9} style={{ letterSpacing: 0.7 }}>
-                    pts
-                  </Eyebrow>
+                  <Eyebrow size={9}>{t.leaderboard.pts}</Eyebrow>
                 </View>
               </View>
             ))}
