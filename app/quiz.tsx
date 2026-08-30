@@ -18,6 +18,7 @@ import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
 import { ROUND_LENGTH, TIME_LIMIT, questionAt } from '../src/data/questions';
+import { useLocale, useT } from '../src/i18n';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
@@ -32,6 +33,8 @@ const opponents = [
 export default function QuizScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const t = useT();
+  const locale = useLocale();
 
   const finishRound = useGame((s) => s.finishRound);
   const spend = useGame((s) => s.spend);
@@ -199,11 +202,11 @@ export default function QuizScreen() {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Chip
-              label={`Q ${index + 1} / ${ROUND_LENGTH}`}
+              label={t.quiz.progress(index + 1, ROUND_LENGTH)}
               background={color.ink}
               foreground={color.white}
             />
-            <Chip label={question.category} />
+            <Chip label={t.categories[question.category]} />
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -217,7 +220,7 @@ export default function QuizScreen() {
                 />
               </Svg>
               <Eyebrow size={10} color={color.forest}>
-                Secure
+                {t.quiz.secure}
               </Eyebrow>
             </View>
             <Display
@@ -232,8 +235,8 @@ export default function QuizScreen() {
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 8 }}>
-        <Display size={30} style={{ lineHeight: 29, marginBottom: 12 }}>
-          {question.prompt}
+        <Display size={30} style={{ marginBottom: 12 }}>
+          {question.prompt[locale]}
         </Display>
 
         {/* Media box — the core of the anti-AI format */}
@@ -281,7 +284,7 @@ export default function QuizScreen() {
                 <Circle cx="12" cy="12" r="9" stroke={color.white} strokeWidth={2} />
               </Svg>
               <Eyebrow size={9} color={color.white}>
-                Live image
+                {t.quiz.liveImage}
               </Eyebrow>
             </View>
 
@@ -298,7 +301,7 @@ export default function QuizScreen() {
               }}
             >
               <UI size={10} weight="bold" color={color.white}>
-                ID #{question.mediaId} · Verified ✓
+                {t.quiz.mediaId(question.mediaId)}
               </UI>
             </View>
           </View>
@@ -314,7 +317,7 @@ export default function QuizScreen() {
             marginBottom: 18,
           }}
         >
-          {question.answers.map((answer, i) => {
+          {question.answers[locale].map((answer, i) => {
             const letter = ['A', 'B', 'C', 'D'][i];
             const isCorrect = revealed && i === question.correct;
             const isWrong = revealed && selected === i && i !== question.correct;
@@ -403,10 +406,10 @@ export default function QuizScreen() {
               <Coin size={18} />
               <UI size={13} weight="semibold" color={powerShort ? color.coral : color.ink2}>
                 {powerShort
-                  ? 'Not enough tokens'
+                  ? t.quiz.notEnough
                   : struck.length
-                    ? '50/50 used'
-                    : `50/50 power-up · ${POWERUP_COST} tokens`}
+                    ? t.quiz.powerupUsed
+                    : t.quiz.powerup(POWERUP_COST)}
               </UI>
             </View>
             <Pressable
@@ -419,7 +422,7 @@ export default function QuizScreen() {
               }}
             >
               <Eyebrow size={12} color={color.white} style={{ letterSpacing: 0.7 }}>
-                Use
+                {t.quiz.use}
               </Eyebrow>
             </Pressable>
           </View>
@@ -452,13 +455,13 @@ export default function QuizScreen() {
               <View style={{ flex: 1 }}>
                 <Display size={20} color={correctPicked ? color.gold : color.coral}>
                   {correctPicked
-                    ? `+${roundPoints(1)} pts · Correct!`
+                    ? t.quiz.correct(roundPoints(1))
                     : selected === null
-                      ? 'Time out'
-                      : 'Wrong'}
+                      ? t.quiz.timeOut
+                      : t.quiz.wrong}
                 </Display>
                 <UI size={11} color="rgba(255,255,255,0.8)" style={{ marginTop: 2 }}>
-                  Streak: {correctPicked ? `×${streak}` : 'Reset to 0'}
+                  {correctPicked ? t.quiz.streak(streak) : t.quiz.streakReset}
                 </UI>
               </View>
               <Pressable
@@ -472,7 +475,7 @@ export default function QuizScreen() {
                 }}
               >
                 <Eyebrow size={13} color={color.ink} style={{ letterSpacing: 0.8 }}>
-                  {index + 1 >= ROUND_LENGTH ? 'Finish →' : 'Next →'}
+                  {index + 1 >= ROUND_LENGTH ? t.quiz.finish : t.quiz.next}
                 </Eyebrow>
               </Pressable>
             </View>
@@ -499,7 +502,7 @@ export default function QuizScreen() {
             ))}
           </View>
           <UI size={11} weight="semibold" color={color.ink3}>
-            + 1,280 playing now
+            {t.quiz.playingNow(1280)}
           </UI>
           <View style={{ flex: 1 }} />
           <Fire size={16} />
