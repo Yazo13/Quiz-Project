@@ -10,6 +10,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 
 import { border, color, depth as DEPTH, font, radius } from '../theme/tokens';
+import { UI } from '../theme/type';
 
 /**
  * The design's `box-shadow: 0 4px 0 var(--line-strong)` — a hard, un-blurred
@@ -195,6 +196,30 @@ export function Tactile({
   );
 }
 
+/**
+ * The button's own label. A component rather than a style object because the
+ * face depends on the active locale, which only a hook can read.
+ */
+export function TactileLabel({
+  children,
+  color: c = color.ink,
+  size = 16,
+}: {
+  children: ReactNode;
+  color?: string;
+  size?: number;
+}) {
+  return (
+    <UI weight="bold" size={size} color={c} style={{ letterSpacing: 0.3 }}>
+      {children}
+    </UI>
+  );
+}
+
+/**
+ * @deprecated Pins the Latin face, so it renders boxes in Georgian. Kept only
+ * until the last screen has moved to TactileLabel.
+ */
 export const tactileLabel = {
   fontFamily: font.bold,
   fontSize: 16,
