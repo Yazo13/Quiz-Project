@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleProp, Text, View, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,7 +9,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Path, RadialGradient, Stop } from 'react-native-svg';
 
-import { border, color, font, radius } from '../theme/tokens';
+import { useLocale } from '../i18n';
+import { border, color, radius, typeMetrics } from '../theme/tokens';
+import { UI } from '../theme/type';
 
 /** The token coin — a gold sphere with a rim light and a dark rim. */
 export function Coin({ size = 18 }: { size?: number }) {
@@ -53,15 +55,9 @@ export function Avatar({
         justifyContent: 'center',
       }}
     >
-      <Text
-        style={{
-          fontFamily: font.bold,
-          fontSize: size * 0.36,
-          color: foreground,
-        }}
-      >
+      <UI weight="bold" size={size * 0.36} color={foreground}>
         {initials}
-      </Text>
+      </UI>
     </View>
   );
 }
@@ -80,6 +76,8 @@ export function Chip({
   size?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { upper } = typeMetrics[useLocale()];
+
   return (
     <View
       style={[
@@ -95,17 +93,18 @@ export function Chip({
         style,
       ]}
     >
-      <Text
+      <UI
+        weight="semibold"
+        size={size}
+        color={foreground}
         style={{
-          fontFamily: font.semibold,
-          fontSize: size,
           letterSpacing: size * 0.06,
-          textTransform: 'uppercase',
-          color: foreground,
+          // Georgian has no uppercase; forcing it only widens the tracking.
+          textTransform: upper ? 'uppercase' : 'none',
         }}
       >
         {label}
-      </Text>
+      </UI>
     </View>
   );
 }
@@ -128,7 +127,7 @@ export function Fire({ size = 14 }: { size?: number }) {
 
   return (
     <Animated.View style={flicker}>
-      <Text style={{ fontSize: size }}>🔥</Text>
+      <UI size={size}>🔥</UI>
     </Animated.View>
   );
 }
