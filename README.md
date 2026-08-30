@@ -60,6 +60,58 @@ npm run design
 
 Then open `Gargari Quiz.html`. It pulls React and Babel from a CDN, so it needs a network connection but no build step.
 
+Types and tests:
+
+```bash
+npm run typecheck
+```
+
+```bash
+npm test
+```
+
+The suites cover the token economy and number formatting — the parts with rules
+rather than layout. They run under `node --test` with type stripping, no test
+framework installed.
+
+## State
+
+One zustand store (`src/store/game.ts`), persisted to AsyncStorage: token
+balance, points, streak, a ledger of every charge and credit, round history and
+which tournaments have been paid into. Every screen reads from it, so the
+balance in the arena header and the balance in the wallet cannot disagree.
+
+Its shape is deliberately what a `GET /me` would return, so the store becomes
+the response type when there is a server.
+
+## Localisation
+
+Georgian and English, switchable from the profile tab and persisted with the
+rest of the state. Georgian is the default.
+
+`src/i18n/en.ts` defines both the English copy and the type every other locale
+has to satisfy — a missing or renamed key is a compile error, never a blank
+label. Strings that interpolate are functions rather than templates with
+placeholders, so word order stays the translator's decision.
+
+Two things the script forces, handled in `src/theme/`:
+
+- **Fonts.** Neither Bebas Neue nor Space Grotesk has Georgian glyphs; set
+  either one and every character renders as a box. Noto Sans Georgian covers
+  both roles, with the heaviest weight standing in for the condensed display
+  face. Both scripts load at startup so switching never shows boxes.
+- **Case and fit.** Georgian has no uppercase, so the small-caps treatment on
+  labels is dropped and the tracking pulled in. Titles are scaled to about 72%
+  of the English size, since Noto is far wider than Bebas and would otherwise
+  clip. Call sites keep asking for `size={48}`; `typeMetrics` does the rest.
+
+Question text lives with the questions in `src/data/questions.ts` rather than in
+the string tables — it is content, and a server will return it the same way.
+
+Numbers are grouped by `src/lib/number.ts` rather than `toLocaleString()`, which
+reads the device locale and would otherwise print "12,408" next to "3 402" on
+the same screen.
+
 ## Web → React Native mapping
 
 The design is CSS; several of its effects have no direct RN equivalent. What was substituted:

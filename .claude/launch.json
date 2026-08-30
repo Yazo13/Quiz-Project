@@ -8,6 +8,12 @@
       "port": 8081
     },
     {
+      "name": "app-web-alt",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8082"],
+      "port": 8082
+    },
+    {
       "name": "web-build",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--yes", "serve", "dist", "-l", "4180", "--no-clipboard"],

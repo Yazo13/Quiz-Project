@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
-import { border, color, depth as DEPTH, font, radius } from '../theme/tokens';
+import { border, color, depth as DEPTH, radius } from '../theme/tokens';
 import { UI } from '../theme/type';
 
 /**
@@ -215,13 +215,3 @@ export function TactileLabel({
     </UI>
   );
 }
-
-/**
- * @deprecated Pins the Latin face, so it renders boxes in Georgian. Kept only
- * until the last screen has moved to TactileLabel.
- */
-export const tactileLabel = {
-  fontFamily: font.bold,
-  fontSize: 16,
-  letterSpacing: 0.3,
-} as const;
