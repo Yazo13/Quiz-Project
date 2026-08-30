@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -10,7 +10,9 @@ import Animated, {
 
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
-import { border, color, font, radius } from '../theme/tokens';
+import { group } from '../lib/number';
+import { border, color, radius } from '../theme/tokens';
+import { UI } from '../theme/type';
 import { Coin } from './Primitives';
 
 const HALO_PAD = 22;
@@ -82,16 +84,9 @@ export function TokenBalance({ amount, onPress }: { amount: number; onPress?: ()
           }}
         >
           <Coin size={18} />
-          <Text
-            style={{
-              fontFamily: font.bold,
-              fontSize: 14,
-              color: color.ink,
-              fontVariant: ['tabular-nums'],
-            }}
-          >
-            {amount.toLocaleString()}
-          </Text>
+          <UI size={14} weight="bold" style={{ fontVariant: ['tabular-nums'] }}>
+            {group(amount)}
+          </UI>
         </View>
       </View>
     </Pressable>
