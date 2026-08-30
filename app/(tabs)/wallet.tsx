@@ -1,34 +1,25 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Coin } from '../../src/components/Primitives';
-import { Tactile, TactileSurface, tactileLabel } from '../../src/components/Tactile';
+import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
+import { Strings, useT } from '../../src/i18n';
+import { group } from '../../src/lib/number';
 import { relative } from '../../src/lib/time';
-import { TxKind, useGame, useWeeklyEarned } from '../../src/store/game';
+import { useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
 /** Tokens per US dollar, taken from the headline $9.99 / 1,200 pack. */
 const TOKENS_PER_DOLLAR = 120;
 
-const txLabel: Record<TxKind, string> = {
-  entry: 'Tournament entry',
-  reward: 'Round reward',
-  consolation: 'Consolation',
-  pack: 'Token pack',
-  powerup: 'Power-up · 50/50',
-  daily: 'Daily check-in',
-};
-
-function whenLabel(at: number) {
+function whenLabel(at: number, when: Strings['wallet']['when']) {
   const { unit, value } = relative(at);
-  if (unit === 'now') return 'just now';
-  if (unit === 'minute') return `${value}m ago`;
-  if (unit === 'hour') return `${value}h ago`;
-  return value === 1 ? 'yesterday' : `${value}d ago`;
+  if (unit === 'now') return when.now;
+  return when[unit](value);
 }
 
 type PackVariant = 'paper' | 'gold' | 'forest' | 'coral';
@@ -58,6 +49,7 @@ const packStyles: Record<PackVariant, { bg: string; fg: string; r: number }> = {
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<'store' | 'activity'>('store');
+  const t = useT();
 
   const tokens = useGame((s) => s.tokens);
   const ledger = useGame((s) => s.ledger);
@@ -66,7 +58,7 @@ export default function WalletScreen() {
 
   const buy = (amount: number) => {
     // Standing in for the real IAP call, which needs a development build.
-    credit('pack', amount, amount.toLocaleString());
+    credit('pack', amount, group(amount));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setMode('activity');
   };
@@ -80,9 +72,9 @@ export default function WalletScreen() {
         contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace }}
       >
         <View style={{ paddingHorizontal: screenPad }}>
-          <Eyebrow size={11}>Your Treasury</Eyebrow>
+          <Eyebrow size={11}>{t.wallet.eyebrow}</Eyebrow>
           <Display size={34} style={{ marginTop: 2 }}>
-            Wallet
+            {t.wallet.title}
           </Display>
         </View>
 
@@ -123,19 +115,18 @@ export default function WalletScreen() {
               />
 
               <Eyebrow size={11} color="rgba(255,255,255,0.55)">
-                Token Balance
+                {t.wallet.balance}
               </Eyebrow>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginTop: 4 }}>
                 <Display size={64} color={color.gold} style={{ fontVariant: ['tabular-nums'] }}>
-                  {tokens.toLocaleString()}
+                  {group(tokens)}
                 </Display>
                 <View style={{ paddingBottom: 8 }}>
                   <Coin size={22} />
                 </View>
               </View>
               <UI size={12} weight="semibold" color="rgba(255,255,255,0.7)" style={{ marginTop: 6 }}>
-                ≈ ${(tokens / TOKENS_PER_DOLLAR).toFixed(2)} · Earned{' '}
-                {weekly.toLocaleString()} this week
+                {t.wallet.summary((tokens / TOKENS_PER_DOLLAR).toFixed(2), weekly)}
               </UI>
 
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
@@ -147,7 +138,9 @@ export default function WalletScreen() {
                     borderWidth={border.medium}
                     onPress={() => setMode('store')}
                   >
-                    <Text style={[tactileLabel, { fontSize: 13, color: color.ink }]}>＋ TOP UP</Text>
+                    <TactileLabel size={13} color={color.ink}>
+                      {t.wallet.topUp}
+                    </TactileLabel>
                   </Tactile>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -160,7 +153,9 @@ export default function WalletScreen() {
                     // The ink border would vanish against the dark card.
                     borderColor="rgba(255,255,255,0.5)"
                   >
-                    <Text style={[tactileLabel, { fontSize: 13, color: color.white }]}>CASH OUT</Text>
+                    <TactileLabel size={13} color={color.white}>
+                      {t.wallet.cashOut}
+                    </TactileLabel>
                   </Tactile>
                 </View>
               </View>
@@ -193,13 +188,8 @@ export default function WalletScreen() {
                     backgroundColor: active ? color.ink : 'transparent',
                   }}
                 >
-                  <UI
-                    size={12}
-                    weight="bold"
-                    color={active ? color.white : color.ink}
-                    style={{ letterSpacing: 1.2, textTransform: 'uppercase' }}
-                  >
-                    {m}
+                  <UI size={12} weight="bold" color={active ? color.white : color.ink}>
+                    {m === 'store' ? t.wallet.store : t.wallet.activity}
                   </UI>
                 </Pressable>
               );
@@ -219,9 +209,9 @@ export default function WalletScreen() {
                 justifyContent: 'space-between',
               }}
             >
-              <Display size={22}>Token Packs</Display>
+              <Display size={22}>{t.wallet.packs}</Display>
               <Eyebrow size={11} color={color.forest}>
-                One-tap buy ✓
+                {t.wallet.oneTap}
               </Eyebrow>
             </View>
 
@@ -252,19 +242,19 @@ export default function WalletScreen() {
                                 color={onDark ? color.gold : color.forest}
                                 style={{ letterSpacing: 0.8 }}
                               >
-                                {p.bonus} BONUS
+                                {t.wallet.bonus(p.bonus)}
                               </UI>
                             )}
                           </View>
                           <Display size={36} color={v.fg} style={{ fontVariant: ['tabular-nums'] }}>
-                            {p.tokens.toLocaleString()}
+                            {group(p.tokens)}
                           </Display>
                           <Eyebrow
                             size={10}
                             color={onDark ? 'rgba(255,255,255,0.7)' : color.ink3}
                             style={{ marginTop: 2 }}
                           >
-                            Tokens
+                            {t.wallet.tokens}
                           </Eyebrow>
                         </View>
 
@@ -301,8 +291,8 @@ export default function WalletScreen() {
                           paddingVertical: 3,
                         }}
                       >
-                        <UI size={9} weight="bold" color={color.white} style={{ letterSpacing: 1 }}>
-                          ★ POPULAR
+                        <UI size={9} weight="bold" color={color.white}>
+                          {t.wallet.popular}
                         </UI>
                       </View>
                     )}
@@ -319,8 +309,8 @@ export default function WalletScreen() {
                           paddingVertical: 3,
                         }}
                       >
-                        <UI size={9} weight="bold" color={color.gold} style={{ letterSpacing: 1 }}>
-                          BEST VALUE
+                        <UI size={9} weight="bold" color={color.gold}>
+                          {t.wallet.bestValue}
                         </UI>
                       </View>
                     )}
@@ -360,15 +350,15 @@ export default function WalletScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <UI size={13} weight="bold">
-                    Apple Pay · •••• 4821
+                    {t.wallet.payMethod}
                   </UI>
                   <UI size={11} color={color.ink3}>
-                    Default · One-tap enabled
+                    {t.wallet.payNote}
                   </UI>
                 </View>
                 <Pressable>
-                  <Eyebrow size={12} color={color.forest} style={{ letterSpacing: 0.5 }}>
-                    Change
+                  <Eyebrow size={12} color={color.forest}>
+                    {t.wallet.change}
                   </Eyebrow>
                 </Pressable>
               </View>
@@ -377,20 +367,20 @@ export default function WalletScreen() {
         ) : (
           <View style={{ paddingHorizontal: screenPad, paddingTop: 20 }}>
             <Display size={22} style={{ marginBottom: 10 }}>
-              Recent activity
+              {t.wallet.recent}
             </Display>
             {ledger.length === 0 ? (
               <TactileSurface radius={radius.sharp}>
                 <View style={{ paddingHorizontal: 14, paddingVertical: 28, alignItems: 'center' }}>
                   <Display size={22} color={color.ink3}>
-                    Nothing yet
+                    {t.wallet.emptyTitle}
                   </Display>
                   <UI
                     size={12}
                     color={color.ink3}
                     style={{ marginTop: 4, textAlign: 'center' }}
                   >
-                    Enter a tournament or buy a pack and it shows up here.
+                    {t.wallet.emptyBody}
                   </UI>
                 </View>
               </TactileSurface>
@@ -426,16 +416,16 @@ export default function WalletScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <UI size={13} weight="bold">
-                        {txLabel[a.kind]}
+                        {t.wallet.tx[a.kind]}
                         {a.detail ? ` · ${a.detail}` : ''}
                       </UI>
                       <UI size={11} color={color.ink3}>
-                        {whenLabel(a.at)}
+                        {whenLabel(a.at, t.wallet.when)}
                       </UI>
                     </View>
                     <Display size={20} color={positive ? color.forest : color.coral}>
                       {positive ? '+' : ''}
-                      {a.amount.toLocaleString()}
+                      {group(a.amount)}
                     </Display>
                   </View>
                 );

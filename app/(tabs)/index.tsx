@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -15,9 +15,10 @@ import {
   Fire,
   LiveDot,
 } from '../../src/components/Primitives';
-import { Tactile, TactileSurface, tactileLabel } from '../../src/components/Tactile';
+import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { TokenBalance } from '../../src/components/TokenBalance';
 import { formatHMS, useCountdown } from '../../src/hooks/useCountdown';
+import { useT } from '../../src/i18n';
 import { ENTRY_COST, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
@@ -26,24 +27,25 @@ import { Display, Eyebrow, UI } from '../../src/theme/type';
 const GRAND_ID = 'grand-tsinandali';
 
 const categories = [
-  { id: 'travel', label: 'Travel', glyph: '✈', tint: color.coralSoft, prizes: '12 prizes' },
-  { id: 'tech', label: 'Tech', glyph: '◉', tint: '#D9E7FF', prizes: '8 prizes' },
-  { id: 'cash', label: 'Cash', glyph: '$', tint: color.goldSoft, prizes: '∞ pool' },
-  { id: 'experience', label: 'Experience', glyph: '★', tint: color.sky, prizes: '5 prizes' },
-];
+  { id: 'travel', glyph: '✈', tint: color.coralSoft, prizes: 12 },
+  { id: 'tech', glyph: '◉', tint: '#D9E7FF', prizes: 8 },
+  { id: 'cash', glyph: '$', tint: color.goldSoft, prizes: 0 },
+  { id: 'experience', glyph: '★', tint: color.sky, prizes: 5 },
+] as const;
 
 const battles = [
-  { title: 'Speed Run · Geography', players: 1284, prize: '50K', hot: true },
-  { title: 'Tech Quickfire', players: 642, prize: '20K', hot: false },
-  { title: 'Culture Clash', players: 2103, prize: '100K', hot: true },
-];
+  { key: 'geography', players: 1284, prize: '50K', hot: true },
+  { key: 'tech', players: 642, prize: '20K', hot: false },
+  { key: 'culture', players: 2103, prize: '100K', hot: true },
+] as const;
 
 export default function ArenaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const total = useCountdown(3 * 3600 + 47 * 60 + 22);
   const { h, m, s } = formatHMS(total);
-  const [category, setCategory] = useState('travel');
+  const [category, setCategory] = useState<string>('travel');
+  const t = useT();
 
   const tokens = useGame((s) => s.tokens);
   const joined = useGame((s) => s.joined.includes(GRAND_ID));
@@ -69,10 +71,10 @@ export default function ArenaScreen() {
   };
 
   const seatLabel = joined
-    ? 'Enter Tournament'
+    ? t.arena.enterTournament
     : short && tokens < ENTRY_COST
-      ? 'Not enough tokens'
-      : `Reserve Seat · ${ENTRY_COST}`;
+      ? t.arena.notEnough
+      : t.arena.reserveSeat(ENTRY_COST);
 
   return (
     <View style={{ flex: 1 }}>
@@ -94,9 +96,7 @@ export default function ArenaScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Avatar initials="DG" background={color.coral} size={40} />
             <View>
-              <Eyebrow size={11} style={{ letterSpacing: 1.1 }}>
-                Adventurer
-              </Eyebrow>
+              <Eyebrow size={11}>{t.arena.role}</Eyebrow>
               <UI size={16} weight="bold">
                 Davit G.
               </UI>
@@ -115,13 +115,11 @@ export default function ArenaScreen() {
             justifyContent: 'space-between',
           }}
         >
-          <Display size={48} style={{ lineHeight: 44 }}>
-            {'The\nArena'}
-          </Display>
+          <Display size={48}>{t.arena.title}</Display>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, paddingTop: 6 }}>
             <LiveDot size={8} />
             <Eyebrow size={11} color={color.coral}>
-              12,408 live
+              {t.arena.live(12408)}
             </Eyebrow>
           </View>
         </View>
@@ -133,7 +131,7 @@ export default function ArenaScreen() {
               <EstateScene />
 
               <Chip
-                label="Grand Tournament"
+                label={t.arena.grandTournament}
                 background={color.coral}
                 foreground={color.white}
                 style={{ position: 'absolute', top: 12, left: 12 }}
@@ -155,7 +153,7 @@ export default function ArenaScreen() {
                 }}
               >
                 <CompassMark size={11} />
-                <Eyebrow size={10}>Kakheti · GE</Eyebrow>
+                <Eyebrow size={10}>{t.arena.place}</Eyebrow>
               </View>
 
               {/* Frosted prize callout */}
@@ -174,11 +172,11 @@ export default function ArenaScreen() {
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Eyebrow size={10}>Prize</Eyebrow>
-                    <Display size={22}>Tsinandali Estate · 2 nights</Display>
+                    <Eyebrow size={10}>{t.arena.prize}</Eyebrow>
+                    <Display size={22}>{t.arena.prizeName}</Display>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Eyebrow size={10}>Worth</Eyebrow>
+                    <Eyebrow size={10}>{t.arena.worth}</Eyebrow>
                     <Display size={22} color={color.forest}>
                       ₾4,800
                     </Display>
@@ -197,17 +195,17 @@ export default function ArenaScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Eyebrow size={11}>Tournament starts in</Eyebrow>
+                <Eyebrow size={11}>{t.arena.startsIn}</Eyebrow>
                 <Eyebrow size={11} color={color.coral}>
-                  ● Hot · 3,402 in
+                  {t.arena.hot(3402)}
                 </Eyebrow>
               </View>
 
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                 {[
-                  { v: h, l: 'Hours' },
-                  { v: m, l: 'Min' },
-                  { v: s, l: 'Sec' },
+                  { v: h, l: t.arena.hours },
+                  { v: m, l: t.arena.minutes },
+                  { v: s, l: t.arena.seconds },
                 ].map((unit) => (
                   <View
                     key={unit.l}
@@ -236,7 +234,7 @@ export default function ArenaScreen() {
                 radius={radius.sharp}
                 onPress={enterGrand}
               >
-                <Text style={[tactileLabel, { color: color.white }]}>{seatLabel}</Text>
+                <TactileLabel color={color.white}>{seatLabel}</TactileLabel>
                 {!joined && <Coin size={16} />}
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
                   <Path
@@ -263,9 +261,9 @@ export default function ArenaScreen() {
               marginBottom: 10,
             }}
           >
-            <Display size={22}>Choose your prize</Display>
+            <Display size={22}>{t.arena.choosePrize}</Display>
             <UI size={12} weight="bold" color={color.ink3}>
-              See all →
+              {t.arena.seeAll}
             </UI>
           </View>
 
@@ -302,7 +300,7 @@ export default function ArenaScreen() {
                     </Display>
                     <View>
                       <Display size={20} color={active ? color.white : color.ink}>
-                        {c.label}
+                        {t.categories[c.id]}
                       </Display>
                       <UI
                         size={10}
@@ -310,7 +308,7 @@ export default function ArenaScreen() {
                         color={active ? 'rgba(255,255,255,0.7)' : color.ink3}
                         style={{ marginTop: 2 }}
                       >
-                        {c.prizes}
+                        {c.prizes === 0 ? t.arena.cashPool : t.arena.prizeCount(c.prizes)}
                       </UI>
                     </View>
                   </View>
@@ -330,13 +328,13 @@ export default function ArenaScreen() {
               marginBottom: 10,
             }}
           >
-            <Display size={22}>Battles · Today</Display>
-            <Chip label="5s rounds" background={color.ink} foreground={color.white} />
+            <Display size={22}>{t.arena.battlesToday}</Display>
+            <Chip label={t.arena.roundLength} background={color.ink} foreground={color.white} />
           </View>
 
           <View style={{ gap: 10 }}>
             {battles.map((b, i) => (
-              <Pressable key={b.title} onPress={() => enterBattle(b.title)}>
+              <Pressable key={b.key} onPress={() => enterBattle(t.arena.battles[b.key])}>
                 <View
                   style={{
                     borderWidth: border.medium,
@@ -366,11 +364,11 @@ export default function ArenaScreen() {
 
                   <View style={{ flex: 1 }}>
                     <UI size={15} weight="bold" numberOfLines={1}>
-                      {b.title}
+                      {t.arena.battles[b.key]}
                     </UI>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
                       <UI size={11} weight="semibold" color={color.ink3}>
-                        {b.players.toLocaleString()} playing
+                        {t.arena.playing(b.players)}
                       </UI>
                       {b.hot && <Fire size={12} />}
                     </View>
@@ -380,9 +378,7 @@ export default function ArenaScreen() {
                     <Display size={22} color={color.forest}>
                       {b.prize}
                     </Display>
-                    <Eyebrow size={9} style={{ letterSpacing: 0.9 }}>
-                      Pool
-                    </Eyebrow>
+                    <Eyebrow size={9}>{t.arena.pool}</Eyebrow>
                   </View>
                 </View>
               </Pressable>
