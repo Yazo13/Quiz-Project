@@ -70,6 +70,49 @@ export const font = {
   bold: 'SpaceGrotesk_700Bold',
 } as const;
 
+/**
+ * Neither Bebas Neue nor Space Grotesk carries Georgian glyphs — set either
+ * one in Georgian and every character renders as a box. Noto Sans Georgian
+ * covers both roles there, with the heaviest weight standing in for the
+ * condensed display face.
+ */
+export const fontSets = {
+  en: font,
+  ka: {
+    display: 'NotoSansGeorgian_800ExtraBold',
+    regular: 'NotoSansGeorgian_400Regular',
+    medium: 'NotoSansGeorgian_500Medium',
+    semibold: 'NotoSansGeorgian_600SemiBold',
+    bold: 'NotoSansGeorgian_700Bold',
+  },
+} as const;
+
+/**
+ * Bebas is condensed and all-caps; Noto Georgian is neither. Georgian titles
+ * set at the same point size run far wider and clip, so they are scaled down
+ * and given the extra leading their ascenders and descenders need.
+ *
+ * `upper` is off for Georgian because the script has no uppercase — the
+ * transform is a no-op there, and the tracking that suits small caps only
+ * makes Georgian labels harder to read.
+ */
+export const typeMetrics = {
+  en: {
+    displayScale: 1,
+    displayLineHeight: 1.02,
+    displayTracking: 0.005,
+    eyebrowTracking: 0.12,
+    upper: true,
+  },
+  ka: {
+    displayScale: 0.72,
+    displayLineHeight: 1.2,
+    displayTracking: 0,
+    eyebrowTracking: 0.04,
+    upper: false,
+  },
+} as const;
+
 /** The mesh-gradient blobs, as [color, x, y] in fractions of the screen. */
 export const mesh = [
   { color: '#FFE6B0', x: 0.18, y: 0.22, size: 0.9 },

@@ -13,6 +13,13 @@ import {
   SpaceGrotesk_600SemiBold,
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
+import {
+  NotoSansGeorgian_400Regular,
+  NotoSansGeorgian_500Medium,
+  NotoSansGeorgian_600SemiBold,
+  NotoSansGeorgian_700Bold,
+  NotoSansGeorgian_800ExtraBold,
+} from '@expo-google-fonts/noto-sans-georgian';
 
 import { useHydrated } from '../src/store/game';
 import { color } from '../src/theme/tokens';
@@ -26,6 +33,14 @@ export default function RootLayout() {
     SpaceGrotesk_500Medium,
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
+    // Both scripts are loaded up front rather than on demand: switching
+    // language mid-session must not leave a screen in boxes while a face
+    // downloads.
+    NotoSansGeorgian_400Regular,
+    NotoSansGeorgian_500Medium,
+    NotoSansGeorgian_600SemiBold,
+    NotoSansGeorgian_700Bold,
+    NotoSansGeorgian_800ExtraBold,
   });
 
   // Reading the saved balance is fast, but not instant — without this the
