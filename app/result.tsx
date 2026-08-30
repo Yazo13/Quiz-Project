@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
@@ -8,8 +8,9 @@ import Svg, { Path } from 'react-native-svg';
 import { BrokenCompassMark, TrophyMark } from '../src/components/EndStateMark';
 import { MeshBackground } from '../src/components/MeshBackground';
 import { Coin, DottedRule } from '../src/components/Primitives';
-import { Tactile, TactileSurface, tactileLabel } from '../src/components/Tactile';
+import { Tactile, TactileLabel, TactileSurface } from '../src/components/Tactile';
 import { ROUND_LENGTH } from '../src/data/questions';
+import { useT } from '../src/i18n';
 import { ENTRY_COST, WIN_THRESHOLD, useGame } from '../src/store/game';
 import { color, radius, screenPad } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
@@ -17,6 +18,7 @@ import { Display, Eyebrow, UI } from '../src/theme/type';
 export default function ResultScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const t = useT();
   const params = useLocalSearchParams<{ round?: string; outcome?: string }>();
 
   const rounds = useGame((s) => s.rounds);
@@ -31,7 +33,9 @@ export default function ResultScreen() {
   const correct = round?.correct ?? (won ? 9 : 4);
   const total = round?.total ?? ROUND_LENGTH;
   const streak = round?.bestStreak ?? (won ? 7 : 0);
-  const avgTime = `${((round?.avgMs ?? (won ? 4200 : 4800)) / 1000).toFixed(1)}s`;
+  const avgTime = t.result.seconds(
+    ((round?.avgMs ?? (won ? 4200 : 4800)) / 1000).toFixed(1),
+  );
   const reward = round?.earned ?? (won ? 480 : 15);
 
   const retry = () => {
@@ -78,11 +82,11 @@ export default function ResultScreen() {
           color={won ? color.coral : color.ink3}
           style={{ letterSpacing: 2.4, marginBottom: 6 }}
         >
-          {won ? 'You won the round' : 'Round over'}
+          {won ? t.result.won : t.result.lost}
         </Eyebrow>
 
-        <Display size={68} style={{ lineHeight: 58, textAlign: 'center' }}>
-          {won ? 'Glory!' : 'Lost the\ntrail'}
+        <Display size={68} style={{ textAlign: 'center' }}>
+          {won ? t.result.wonTitle : t.result.lostTitle}
         </Display>
 
         {/* Stats */}
@@ -94,9 +98,9 @@ export default function ResultScreen() {
             <View style={{ paddingHorizontal: 18, paddingVertical: 16 }}>
               <View style={{ flexDirection: 'row' }}>
                 {[
-                  { v: `${correct} / ${total}`, l: 'Correct' },
-                  { v: `×${streak}`, l: 'Streak', tint: color.coral },
-                  { v: avgTime, l: 'Avg time' },
+                  { v: `${correct} / ${total}`, l: t.result.correct },
+                  { v: `×${streak}`, l: t.result.streak, tint: color.coral },
+                  { v: avgTime, l: t.result.avgTime },
                 ].map((s) => (
                   <View key={s.l} style={{ flex: 1, alignItems: 'center' }}>
                     <Display
@@ -138,7 +142,7 @@ export default function ResultScreen() {
                 }}
               >
                 <Eyebrow size={11} color={won ? 'rgba(255,255,255,0.6)' : color.ink3}>
-                  {won ? 'Reward' : 'Consolation'}
+                  {won ? t.result.reward : t.result.consolation}
                 </Eyebrow>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Coin size={20} />
@@ -160,15 +164,13 @@ export default function ResultScreen() {
             radius={radius.sharp}
             onPress={won ? () => router.replace('/') : retry}
           >
-            <Text
-              style={[tactileLabel, { color: short && !won ? color.ink : color.white }]}
-            >
+            <TactileLabel color={short && !won ? color.ink : color.white}>
               {won
-                ? 'Claim & continue'
+                ? t.result.claim
                 : short
-                  ? 'Not enough tokens'
-                  : `Try again · ${ENTRY_COST}`}
-            </Text>
+                  ? t.result.notEnough
+                  : t.result.tryAgain(ENTRY_COST)}
+            </TactileLabel>
             {won ? (
               <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
                 <Path
@@ -190,9 +192,9 @@ export default function ResultScreen() {
             radius={radius.soft}
             onPress={() => router.replace('/')}
           >
-            <Text style={[tactileLabel, { color: color.ink }]}>
-              {won ? 'Share result' : 'Back to Arena'}
-            </Text>
+            <TactileLabel color={color.ink}>
+              {won ? t.result.share : t.result.backToArena}
+            </TactileLabel>
           </Tactile>
         </View>
 
