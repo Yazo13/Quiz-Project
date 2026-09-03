@@ -1,4 +1,3 @@
-# Gargari Quiz
 
 Tournament-based trivia app — "adventures" theme, high-energy game feel rather than a form.
 
