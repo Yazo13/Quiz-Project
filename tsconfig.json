@@ -5,6 +5,9 @@
     // The node:test suites import with an explicit .ts extension, which is
     // what Node's ESM loader resolves under --experimental-strip-types.
     "allowImportingTsExtensions": true,
+    // Those suites also import node: builtins. SDK 54 pulled @types/node in
+    // transitively; SDK 57 does not, so it is declared here explicitly.
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }
