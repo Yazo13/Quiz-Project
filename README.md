@@ -1,7 +1,4 @@
 
-Tournament-based trivia app — "adventures" theme, high-energy game feel rather than a form.
-
-The repo holds two things:
 
 | Folder | What it is |
 | --- | --- |
