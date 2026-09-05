@@ -1,9 +1,5 @@
 
 
-| Folder | What it is |
-| --- | --- |
-| `design/` | The hi-fi design source, imported 1:1 from the Claude Design project. Plain HTML + JSX + CSS, opens in a browser, pan/zoom canvas with all six screens side by side. This is the visual source of truth. |
-| `app/`, `src/` | The real app — Expo / React Native, expo-router. |
 
 ## Design system
 
