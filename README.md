@@ -1,19 +1,6 @@
 
 
 
-## Design system
-
-Adventures palette, light. Paper-cream backgrounds, deep forest green, coral accent, gold tokens.
-
-| Token | Value | Use |
-| --- | --- | --- |
-| `paper` | `#F2E9D5` | Page background |
-| `cream` | `#FAF4E5` | Recessed surfaces |
-| `surface` | `#FFFFFF` | Cards |
-| `ink` | `#181512` | Text, dark cards, tab bar |
-| `forest` | `#144132` | Primary action, correct answer |
-| `coral` | `#FF4D2E` | Urgency, live, wrong answer |
-| `gold` | `#F0B23E` | Tokens, rewards, first place |
 
 Rules that give it the signature look:
 
