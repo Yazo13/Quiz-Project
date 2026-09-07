@@ -2,17 +2,6 @@
 
 
 
-Rules that give it the signature look:
-
-- **Border radius is either `0` or `24`.** Never anything in between. Adjacent elements deliberately alternate.
-- **Thick borders.** `2–3px` of `rgba(24,21,18,0.85)` on every interactive surface.
-- **Tactile shadow.** A hard `0 4px 0` offset under buttons and cards, which collapses to `0 1px 0` while pressed. In React Native this is a sibling `View` behind the element — RN has no hard box-shadow.
-- **Type.** Bebas Neue (condensed, uppercase) for titles; Space Grotesk for UI.
-- **Mesh gradient background.** Slow-drifting radial blobs, always alive behind the content.
-- **Frosted glass** for reward and prize callouts.
-
-## Screens
-
 1. **Arena** (home) — Grand Tournament card with live countdown + prize art, horizontal category scroll, live battle list, glowing token balance.
 2. **Quiz** — 5-second depleting progress bar, central media box (the anti-AI question format), four tactile answer buttons with spring press.
 3. **Leaderboard** — your rank banner, podium, live rank list with fire icons for streaks.
