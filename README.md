@@ -2,13 +2,6 @@
 
 
 
-1. **Arena** (home) — Grand Tournament card with live countdown + prize art, horizontal category scroll, live battle list, glowing token balance.
-2. **Quiz** — 5-second depleting progress bar, central media box (the anti-AI question format), four tactile answer buttons with spring press.
-3. **Leaderboard** — your rank banner, podium, live rank list with fire icons for streaks.
-4. **Wallet & Store** — balance hero, token pack grid, one-tap buy, activity log.
-5. **Victory** / 6. **Defeat** — end states with animated trophy and cracked compass.
-
-## Running
 
 The app:
 
