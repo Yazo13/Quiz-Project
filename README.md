@@ -1,21 +1,6 @@
 
 
 
-
-
-The app:
-
-```bash
-npm install
-```
-
-```bash
-npm start
-```
-
-The design canvas (any static server works):
-
-```bash
 npm run design
 ```
 
