@@ -1,19 +1,5 @@
 
 
-
-npm run design
-```
-
-Then open `Gargari Quiz.html`. It pulls React and Babel from a CDN, so it needs a network connection but no build step.
-
-Types and tests:
-
-```bash
-npm run typecheck
-```
-
-```bash
-npm test
 ```
 
 The suites cover the token economy and number formatting — the parts with rules
