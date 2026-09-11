@@ -82,8 +82,16 @@ interface GameState {
   rounds: RoundResult[];
   /** Tournament ids the player has paid into. */
   joined: string[];
+  /**
+   * False until the player picks a language themselves. While it is false the
+   * app is free to follow the device; once they choose, their choice sticks
+   * even if they later change the phone's language.
+   */
+  localePinned: boolean;
 
   setLocale: (locale: Locale) => void;
+  /** Adopts a language without marking it as the player's own choice. */
+  suggestLocale: (locale: Locale) => void;
   /** Returns false when the balance is short; the caller decides how to refuse. */
   spend: (kind: TxKind, amount: number, detail?: string) => boolean;
   credit: (kind: TxKind, amount: number, detail?: string) => void;
@@ -139,8 +147,13 @@ export const useGame = create<GameState>()(
       ledger: [],
       rounds: [],
       joined: [],
+      localePinned: false,
 
-      setLocale: (locale) => set({ locale }),
+      setLocale: (locale) => set({ locale, localePinned: true }),
+      suggestLocale: (locale) => {
+        if (get().localePinned) return;
+        set({ locale });
+      },
 
       spend: (kind, amount, detail) => {
         if (get().tokens < amount) return false;
@@ -220,6 +233,16 @@ export const useGame = create<GameState>()(
     {
       name: 'gargari-quiz/v1',
       storage: createJSONStorage(() => storage),
+      version: 1,
+      migrate: (persisted, from) => {
+        // v0 had no localePinned. Those installs were already running in a
+        // language the player has been looking at, so adopting the device
+        // language underneath them would be a surprise — treat it as pinned.
+        if (from < 1) {
+          return { ...(persisted as GameState), localePinned: true };
+        }
+        return persisted as GameState;
+      },
     },
   ),
 );

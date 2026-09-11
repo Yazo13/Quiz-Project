@@ -21,6 +21,7 @@ import {
   NotoSansGeorgian_800ExtraBold,
 } from '@expo-google-fonts/noto-sans-georgian';
 
+import { useDeviceLocale } from '../src/i18n';
 import { useHydrated } from '../src/store/game';
 import { color } from '../src/theme/tokens';
 
@@ -47,6 +48,10 @@ export default function RootLayout() {
   // arena paints the starting 1,248 and then snaps to the real figure.
   const hydrated = useHydrated();
   const ready = (fontsLoaded || fontError) && hydrated;
+
+  // Gated on hydration, so a saved choice is already in place and
+  // suggestLocale correctly declines to override it.
+  useDeviceLocale(hydrated);
 
   useEffect(() => {
     // The whole design is font-driven; showing it in the system face first

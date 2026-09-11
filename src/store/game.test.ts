@@ -107,6 +107,25 @@ describe('finishing a round', () => {
   });
 });
 
+describe('language choice', () => {
+  it('follows a suggestion until the player picks one', () => {
+    useGame.setState({ locale: 'ka', localePinned: false });
+
+    state().suggestLocale('en');
+    assert.equal(state().locale, 'en');
+  });
+
+  it('stops following once the player has picked', () => {
+    useGame.setState({ locale: 'ka', localePinned: false });
+
+    state().setLocale('ka');
+    assert.equal(state().localePinned, true);
+
+    state().suggestLocale('en');
+    assert.equal(state().locale, 'ka', 'a device language must not override a choice');
+  });
+});
+
 describe('reset', () => {
   it('returns the player to the starting state', () => {
     state().spend('entry', ENTRY_COST);
