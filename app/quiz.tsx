@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +17,7 @@ import { EstateScene } from '../src/components/EstateScene';
 import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
-import { ROUND_LENGTH, TIME_LIMIT, questionAt } from '../src/data/questions';
+import { TIME_LIMIT, buildRound } from '../src/data/questions';
 import { useLocale, useT } from '../src/i18n';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
@@ -56,7 +56,9 @@ export default function QuizScreen() {
   const bestStreak = useRef(useGame.getState().streak);
   const times = useRef<number[]>([]);
 
-  const question = questionAt(index);
+  // Drawn once per mount, so re-renders cannot reshuffle the round underfoot.
+  const [round] = useState(buildRound);
+  const question = round[index];
 
   // The bar is driven by Reanimated so the depletion stays smooth on the UI
   // thread; the numeric readout ticks separately at 10 Hz, which is all the
@@ -136,11 +138,11 @@ export default function QuizScreen() {
   };
 
   const next = () => {
-    if (index + 1 >= ROUND_LENGTH) {
+    if (index + 1 >= round.length) {
       const answered = times.current.length || 1;
       const result = finishRound({
         correct: score,
-        total: ROUND_LENGTH,
+        total: round.length,
         bestStreak: bestStreak.current,
         avgMs: times.current.reduce((a, b) => a + b, 0) / answered,
       });
@@ -202,7 +204,7 @@ export default function QuizScreen() {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Chip
-              label={t.quiz.progress(index + 1, ROUND_LENGTH)}
+              label={t.quiz.progress(index + 1, round.length)}
               background={color.ink}
               foreground={color.white}
             />
@@ -475,7 +477,7 @@ export default function QuizScreen() {
                 }}
               >
                 <Eyebrow size={13} color={color.ink} style={{ letterSpacing: 0.8 }}>
-                  {index + 1 >= ROUND_LENGTH ? t.quiz.finish : t.quiz.next}
+                  {index + 1 >= round.length ? t.quiz.finish : t.quiz.next}
                 </Eyebrow>
               </Pressable>
             </View>

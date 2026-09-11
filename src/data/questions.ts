@@ -1,20 +1,25 @@
 import type { Locale } from '../store/game';
 
 /**
- * Placeholder round.
+ * Placeholder bank.
  *
- * The anti-AI format means every question is anchored to a piece of media
- * the player has to actually look at — in production each record carries a
- * server-issued image URL plus the `mediaId` shown in the frame, so an
- * answer can be traced back to the exact asset that was served. Until that
- * endpoint exists the media falls back to the bundled estate illustration.
+ * The anti-AI format means every question is meant to be anchored to a piece
+ * of media the player has to actually look at — in production each record
+ * carries a server-issued image URL plus the `mediaId` shown in the frame, so
+ * an answer can be traced back to the exact asset that was served. Until that
+ * endpoint exists these stand in as general knowledge and the media falls back
+ * to the bundled estate illustration.
+ *
+ * The bank must hold at least ROUND_LENGTH questions: buildRound draws without
+ * replacement, and a round that repeats a question hands the player the answer
+ * the second time around.
  *
  * Prompts and answers carry both languages inline rather than living in the
- * string tables: they are content, not chrome, and a server will return them
- * the same way — one row, every locale it has.
+ * string tables: they are content, and a server will return them the same way
+ * — one row, every locale it has.
  */
 
-export type CategoryKey = 'travel' | 'culture';
+export type CategoryKey = 'travel' | 'culture' | 'tech' | 'experience';
 
 type Localised = Record<Locale, string>;
 type LocalisedAnswers = Record<Locale, [string, string, string, string]>;
@@ -103,9 +108,231 @@ export const questions: Question[] = [
     correct: 1,
     mediaId: '4825',
   },
+  {
+    id: 6,
+    category: 'travel',
+    prompt: {
+      en: 'Which sea borders Georgia to the west?',
+      ka: 'რომელი ზღვა ესაზღვრება საქართველოს დასავლეთიდან?',
+    },
+    answers: {
+      en: ['Caspian Sea', 'Sea of Azov', 'Black Sea', 'Mediterranean Sea'],
+      ka: ['კასპიის ზღვა', 'აზოვის ზღვა', 'შავი ზღვა', 'ხმელთაშუა ზღვა'],
+    },
+    correct: 2,
+    mediaId: '4826',
+  },
+  {
+    id: 7,
+    category: 'travel',
+    prompt: {
+      en: 'What is the highest peak in Georgia?',
+      ka: 'რომელია საქართველოს უმაღლესი მწვერვალი?',
+    },
+    answers: {
+      en: ['Kazbegi', 'Shkhara', 'Ushba', 'Tetnuldi'],
+      ka: ['ყაზბეგი', 'შხარა', 'უშბა', 'თეთნულდი'],
+    },
+    correct: 1,
+    mediaId: '4827',
+  },
+  {
+    id: 8,
+    category: 'travel',
+    prompt: {
+      en: 'Which town was the ancient capital of the Georgian kingdom?',
+      ka: 'რომელი ქალაქი იყო ქართლის სამეფოს ძველი დედაქალაქი?',
+    },
+    answers: {
+      en: ['Kutaisi', 'Telavi', 'Gori', 'Mtskheta'],
+      ka: ['ქუთაისი', 'თელავი', 'გორი', 'მცხეთა'],
+    },
+    correct: 3,
+    mediaId: '4828',
+  },
+  {
+    id: 9,
+    category: 'travel',
+    prompt: {
+      en: 'Which Tbilisi district is known for its sulphur baths?',
+      ka: 'თბილისის რომელი უბანია გოგირდის აბანოებით ცნობილი?',
+    },
+    answers: {
+      en: ['Abanotubani', 'Vake', 'Saburtalo', 'Gldani'],
+      ka: ['აბანოთუბანი', 'ვაკე', 'საბურთალო', 'გლდანი'],
+    },
+    correct: 0,
+    mediaId: '4829',
+  },
+  {
+    id: 10,
+    category: 'travel',
+    prompt: {
+      en: 'Batumi is the capital of which region?',
+      ka: 'ბათუმი რომელი მხარის ცენტრია?',
+    },
+    answers: {
+      en: ['Guria', 'Samegrelo', 'Adjara', 'Imereti'],
+      ka: ['გურია', 'სამეგრელო', 'აჭარა', 'იმერეთი'],
+    },
+    correct: 2,
+    mediaId: '4830',
+  },
+  {
+    id: 11,
+    category: 'culture',
+    prompt: {
+      en: 'What clay vessel is Georgian wine traditionally fermented in?',
+      ka: 'თიხის რომელ ჭურჭელში დუღს ტრადიციულად ქართული ღვინო?',
+    },
+    answers: {
+      en: ['Amphora', 'Qvevri', 'Pithos', 'Dolium'],
+      ka: ['ამფორა', 'ქვევრი', 'პითოსი', 'დოლიუმი'],
+    },
+    correct: 1,
+    mediaId: '4831',
+  },
+  {
+    id: 12,
+    category: 'culture',
+    prompt: {
+      en: 'How many letters does the modern Georgian alphabet have?',
+      ka: 'რამდენი ასოა თანამედროვე ქართულ ანბანში?',
+    },
+    answers: {
+      en: ['28', '31', '33', '38'],
+      ka: ['28', '31', '33', '38'],
+    },
+    correct: 2,
+    mediaId: '4832',
+  },
+  {
+    id: 13,
+    category: 'culture',
+    prompt: {
+      en: 'Which Georgian folk song travelled on the Voyager Golden Record?',
+      ka: 'რომელი ქართული ხალხური სიმღერა წაიღო Voyager-ის ოქროს ფირფიტამ?',
+    },
+    answers: {
+      en: ['Chakrulo', 'Suliko', 'Mravalzhamier', 'Shen khar venakhi'],
+      ka: ['ჩაკრულო', 'სულიკო', 'მრავალჟამიერ', 'შენ ხარ ვენახი'],
+    },
+    correct: 0,
+    mediaId: '4833',
+  },
+  {
+    id: 14,
+    category: 'culture',
+    prompt: {
+      en: 'Which of these is a Georgian dumpling?',
+      ka: 'რომელია ქართული მოხარშული ცომეული?',
+    },
+    answers: {
+      en: ['Khachapuri', 'Lobio', 'Pkhali', 'Khinkali'],
+      ka: ['ხაჭაპური', 'ლობიო', 'ფხალი', 'ხინკალი'],
+    },
+    correct: 3,
+    mediaId: '4834',
+  },
+  {
+    id: 15,
+    category: 'culture',
+    prompt: {
+      en: 'Which script is Georgian written in today?',
+      ka: 'რომელი დამწერლობით იწერება ქართული დღეს?',
+    },
+    answers: {
+      en: ['Asomtavruli', 'Mkhedruli', 'Nuskhuri', 'Cyrillic'],
+      ka: ['ასომთავრული', 'მხედრული', 'ნუსხური', 'კირილიცა'],
+    },
+    correct: 1,
+    mediaId: '4835',
+  },
+  {
+    id: 16,
+    category: 'experience',
+    prompt: {
+      en: 'Which autumn festival marks the Georgian grape harvest?',
+      ka: 'რომელი შემოდგომის დღესასწაული აღნიშნავს ყურძნის მოსავალს?',
+    },
+    answers: {
+      en: ['Tbilisoba', 'Alilo', 'Rtveli', 'Berikaoba'],
+      ka: ['თბილისობა', 'ალილო', 'რთველი', 'ბერიკაობა'],
+    },
+    correct: 2,
+    mediaId: '4836',
+  },
+  {
+    id: 17,
+    category: 'tech',
+    prompt: {
+      en: 'Which company created React Native?',
+      ka: 'რომელმა კომპანიამ შექმნა React Native?',
+    },
+    answers: {
+      en: ['Google', 'Apple', 'Meta', 'Microsoft'],
+      ka: ['Google', 'Apple', 'Meta', 'Microsoft'],
+    },
+    correct: 2,
+    mediaId: '4837',
+  },
+  {
+    id: 18,
+    category: 'tech',
+    prompt: {
+      en: 'Which protocol encrypts traffic on modern websites?',
+      ka: 'რომელი პროტოკოლი შიფრავს თანამედროვე საიტების ტრაფიკს?',
+    },
+    answers: {
+      en: ['FTP', 'TLS', 'SMTP', 'DNS'],
+      ka: ['FTP', 'TLS', 'SMTP', 'DNS'],
+    },
+    correct: 1,
+    mediaId: '4838',
+  },
+  {
+    id: 19,
+    category: 'tech',
+    prompt: {
+      en: 'In what year was the first iPhone released?',
+      ka: 'რომელ წელს გამოვიდა პირველი iPhone?',
+    },
+    answers: {
+      en: ['2004', '2005', '2006', '2007'],
+      ka: ['2004', '2005', '2006', '2007'],
+    },
+    correct: 3,
+    mediaId: '4839',
+  },
+  {
+    id: 20,
+    category: 'tech',
+    prompt: {
+      en: 'Which language runs natively in a web browser?',
+      ka: 'რომელი ენა სრულდება ბრაუზერში პირდაპირ?',
+    },
+    answers: {
+      en: ['JavaScript', 'Python', 'Ruby', 'Go'],
+      ka: ['JavaScript', 'Python', 'Ruby', 'Go'],
+    },
+    correct: 0,
+    mediaId: '4840',
+  },
 ];
 
-/** Rounds are 10 questions; the bank cycles until the bank is bigger. */
-export function questionAt(index: number): Question {
-  return questions[index % questions.length];
+/**
+ * One round's worth of questions, drawn without replacement.
+ *
+ * The bank used to be cycled with a modulo, which meant a ten-question round
+ * over a five-question bank showed every question twice — the second half was
+ * free marks. Shuffling a copy and taking the first `length` makes a repeat
+ * impossible within a round.
+ */
+export function buildRound(length = ROUND_LENGTH, bank: Question[] = questions): Question[] {
+  const pool = [...bank];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.min(length, pool.length));
 }
