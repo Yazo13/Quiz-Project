@@ -34,9 +34,12 @@ const categories = [
 ] as const;
 
 const battles = [
-  { key: 'geography', players: 1284, prize: '50K', hot: true },
-  { key: 'tech', players: 642, prize: '20K', hot: false },
-  { key: 'culture', players: 2103, prize: '100K', hot: true },
+  { key: 'geography', category: 'travel', players: 1284, prize: '50K', hot: true },
+  { key: 'tech', category: 'tech', players: 642, prize: '20K', hot: false },
+  { key: 'culture', category: 'experience', players: 2103, prize: '100K', hot: true },
+  { key: 'cellar', category: 'travel', players: 418, prize: '15K', hot: false },
+  { key: 'jackpot', category: 'cash', players: 3960, prize: '250K', hot: true },
+  { key: 'nightOwl', category: 'cash', players: 704, prize: '40K', hot: false },
 ] as const;
 
 export default function ArenaScreen() {
@@ -44,8 +47,12 @@ export default function ArenaScreen() {
   const insets = useSafeAreaInsets();
   const total = useCountdown(3 * 3600 + 47 * 60 + 22);
   const { h, m, s } = formatHMS(total);
-  const [category, setCategory] = useState<string>('travel');
+  // Null means no filter. Tapping the selected category clears it, which is
+  // the only way back to the full list from the scroller itself.
+  const [category, setCategory] = useState<string | null>(null);
   const t = useT();
+
+  const shown = category ? battles.filter((b) => b.category === category) : battles;
 
   const tokens = useGame((s) => s.tokens);
   const joined = useGame((s) => s.joined.includes(GRAND_ID));
@@ -262,9 +269,16 @@ export default function ArenaScreen() {
             }}
           >
             <Display size={22}>{t.arena.choosePrize}</Display>
-            <UI size={12} weight="bold" color={color.ink3}>
-              {t.arena.seeAll}
-            </UI>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={category ? t.arena.seeAllActive : t.arena.seeAll}
+              onPress={() => setCategory(null)}
+              disabled={!category}
+            >
+              <UI size={12} weight="bold" color={category ? color.coral : color.ink3}>
+                {category ? t.arena.seeAllActive : t.arena.seeAll}
+              </UI>
+            </Pressable>
           </View>
 
           <ScrollView
@@ -284,7 +298,9 @@ export default function ArenaScreen() {
                   height={140}
                   variant="cream"
                   background={active ? color.ink : c.tint}
-                  onPress={() => setCategory(c.id)}
+                  onPress={() => setCategory(active ? null : c.id)}
+                  selected={active}
+                  accessibilityLabel={t.categories[c.id]}
                   style={{ width: 128 }}
                 >
                   <View
@@ -333,7 +349,22 @@ export default function ArenaScreen() {
           </View>
 
           <View style={{ gap: 10 }}>
-            {battles.map((b, i) => (
+            {shown.length === 0 && (
+              <View
+                style={{
+                  borderWidth: border.thin,
+                  borderStyle: 'dashed',
+                  borderColor: color.lineStrong,
+                  paddingVertical: 22,
+                  alignItems: 'center',
+                }}
+              >
+                <UI size={13} weight="semibold" color={color.ink3}>
+                  {t.arena.noBattles}
+                </UI>
+              </View>
+            )}
+            {shown.map((b, i) => (
               <Pressable
                 key={b.key}
                 accessibilityRole="button"

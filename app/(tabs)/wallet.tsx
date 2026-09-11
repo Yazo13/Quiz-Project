@@ -144,6 +144,9 @@ export default function WalletScreen() {
                   </Tactile>
                 </View>
                 <View style={{ flex: 1 }}>
+                  {/* Withdrawal needs a payout provider that does not exist
+                      yet. Disabled and labelled, rather than looking live and
+                      doing nothing when tapped. */}
                   <Tactile
                     height={44}
                     radius={radius.soft}
@@ -151,11 +154,16 @@ export default function WalletScreen() {
                     background="transparent"
                     borderWidth={border.medium}
                     // The ink border would vanish against the dark card.
-                    borderColor="rgba(255,255,255,0.5)"
+                    borderColor="rgba(255,255,255,0.25)"
+                    disabled
+                    accessibilityLabel={`${t.wallet.cashOut} — ${t.wallet.soon}`}
                   >
-                    <TactileLabel size={13} color={color.white}>
+                    <TactileLabel size={13} color="rgba(255,255,255,0.45)">
                       {t.wallet.cashOut}
                     </TactileLabel>
+                    <UI size={10} weight="bold" color="rgba(255,255,255,0.35)">
+                      {t.wallet.soon}
+                    </UI>
                   </Tactile>
                 </View>
               </View>
@@ -363,8 +371,9 @@ export default function WalletScreen() {
                     {t.wallet.payNote}
                   </UI>
                 </View>
-                <Pressable>
-                  <Eyebrow size={12} color={color.forest}>
+                {/* Same again: managing cards needs the payment provider. */}
+                <Pressable disabled accessibilityLabel={`${t.wallet.change} — ${t.wallet.soon}`}>
+                  <Eyebrow size={12} color={color.ink4}>
                     {t.wallet.change}
                   </Eyebrow>
                 </Pressable>

@@ -50,10 +50,15 @@ export const ka: Strings = {
     roundLength: '5 წამი',
     playing: (n: number) => `${group(n)} თამაშობს`,
     pool: 'ფონდი',
+    seeAllActive: 'ფილტრის მოხსნა ×',
+    noBattles: 'დღეს ამ კატეგორიაში ბრძოლა არ არის.',
     battles: {
       geography: 'სწრაფი რბოლა · გეოგრაფია',
       tech: 'ტექნო ბლიცი',
       culture: 'კულტურული შეჯიბრი',
+      cellar: 'მარნის კარი · კახეთი',
+      jackpot: 'დღის ჯეკპოტი',
+      nightOwl: 'ღამის ფრინველი · ორმაგი',
     },
   },
 
@@ -124,6 +129,7 @@ export const ka: Strings = {
       `≈ $${dollars} · ${group(weekly)} ამ კვირაში`,
     topUp: '＋ შევსება',
     cashOut: 'გატანა',
+    soon: 'მალე',
     store: 'მაღაზია',
     activity: 'ისტორია',
     packs: 'ტოკენების პაკეტები',

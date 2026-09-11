@@ -51,10 +51,15 @@ export const en = {
     roundLength: '5s rounds',
     playing: (n: number) => `${group(n)} playing`,
     pool: 'Pool',
+    seeAllActive: 'Clear filter ×',
+    noBattles: 'No battles in this category today.',
     battles: {
       geography: 'Speed Run · Geography',
       tech: 'Tech Quickfire',
       culture: 'Culture Clash',
+      cellar: 'Cellar Door · Kakheti',
+      jackpot: 'Daily Jackpot',
+      nightOwl: 'Night Owl · Doubles',
     },
   },
 
@@ -125,6 +130,8 @@ export const en = {
       `≈ $${dollars} · Earned ${group(weekly)} this week`,
     topUp: '＋ TOP UP',
     cashOut: 'CASH OUT',
+    /** Marks a control that is visibly present but not wired up yet. */
+    soon: 'soon',
     store: 'STORE',
     activity: 'ACTIVITY',
     packs: 'Token Packs',
