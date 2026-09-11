@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { AppState, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -109,6 +109,41 @@ export default function QuizScreen() {
       tick.current = null;
     };
   }, [index, progress, timeOut]);
+
+  // Leaving the app must not stop the clock.
+  //
+  // The bar runs on the UI thread and the readout on a JS interval, and the OS
+  // suspends both in the background — so without this, switching away froze the
+  // question and switching back resumed it with time to spare. That is a free
+  // thinking pause in a game whose whole premise is a five-second budget.
+  //
+  // The deadline is wall-clock, so the truth is already recorded; coming back
+  // only has to settle up against it.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active' || revealed) return;
+
+      const left = deadline.current - Date.now();
+      if (left <= 0) {
+        progress.value = 0;
+        timeOut();
+        return;
+      }
+
+      // Still time on the clock: resync the bar to where it should be and let
+      // it finish out the remainder.
+      progress.value = left / (TIME_LIMIT * 1000);
+      progress.value = withTiming(
+        0,
+        { duration: left, easing: Easing.linear },
+        (finished) => {
+          if (finished) runOnJS(timeOut)();
+        },
+      );
+    });
+
+    return () => sub.remove();
+  }, [revealed, progress, timeOut]);
 
   const urgent = timeLeft < 2 && !revealed;
 
