@@ -25,6 +25,14 @@ import { useDeviceLocale } from '../src/i18n';
 import { useHydrated } from '../src/store/game';
 import { color } from '../src/theme/tokens';
 
+/**
+ * expo-router picks this up by name and renders it instead of the tree when a
+ * screen throws — otherwise that is a red diagnostic in development and a
+ * blank white screen in production, neither of which gives the player
+ * anywhere to go.
+ */
+export { CrashScreen as ErrorBoundary } from '../src/components/CrashScreen';
+
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {

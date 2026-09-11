@@ -155,6 +155,14 @@ export const en = {
     } satisfies Record<RelativeUnit, string | ((n: number) => string)>,
   },
 
+  crash: {
+    eyebrow: 'Something broke',
+    title: 'Off the\nmap',
+    body: 'This screen stopped working. Your tokens and progress are saved.',
+    details: 'What happened',
+    retry: 'Try this screen again',
+  },
+
   profile: {
     eyebrow: 'Your Record',
     title: 'Profile',
