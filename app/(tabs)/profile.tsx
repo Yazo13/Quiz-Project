@@ -159,6 +159,9 @@ export default function ProfileScreen() {
               return (
                 <Pressable
                   key={code}
+                  accessibilityRole="button"
+                  accessibilityLabel={localeNames[code]}
+                  accessibilityState={{ selected: active }}
                   onPress={() => setLocale(code)}
                   style={{
                     flex: 1,

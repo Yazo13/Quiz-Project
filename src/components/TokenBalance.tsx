@@ -10,6 +10,7 @@ import Animated, {
 
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { useT } from '../i18n';
 import { group } from '../lib/number';
 import { border, color, radius } from '../theme/tokens';
 import { UI } from '../theme/type';
@@ -27,6 +28,8 @@ const HALO_PAD = 22;
  * animate on the 2.4s loop.
  */
 export function TokenBalance({ amount, onPress }: { amount: number; onPress?: () => void }) {
+  const strings = useT();
+  const label = strings.wallet.tokens;
   const t = useSharedValue(0);
 
   useEffect(() => {
@@ -43,7 +46,13 @@ export function TokenBalance({ amount, onPress }: { amount: number; onPress?: ()
   }));
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      // The coin beside the figure carries the meaning visually; without this
+      // the control announces a bare number.
+      accessibilityLabel={`${group(amount)} ${label}`}
+    >
       <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Animated.View
           pointerEvents="none"

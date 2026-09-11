@@ -334,7 +334,12 @@ export default function ArenaScreen() {
 
           <View style={{ gap: 10 }}>
             {battles.map((b, i) => (
-              <Pressable key={b.key} onPress={() => enterBattle(t.arena.battles[b.key])}>
+              <Pressable
+                key={b.key}
+                accessibilityRole="button"
+                accessibilityLabel={`${t.arena.battles[b.key]} · ${t.arena.playing(b.players)}`}
+                onPress={() => enterBattle(t.arena.battles[b.key])}
+              >
                 <View
                   style={{
                     borderWidth: border.medium,

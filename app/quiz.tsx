@@ -388,6 +388,11 @@ export default function QuizScreen() {
                   background={bg}
                   disabled={revealed || isStruck}
                   silent
+                  // The letter badge and the answer read as two separate
+                  // strings otherwise, and a struck-out option looks
+                  // identical to a live one without the state.
+                  accessibilityLabel={`${letter}. ${answer}`}
+                  selected={selected === i}
                   onPress={() => choose(i)}
                 >
                   <View
@@ -452,6 +457,9 @@ export default function QuizScreen() {
             <Pressable
               onPress={useFiftyFifty}
               disabled={struck.length > 0}
+              accessibilityRole="button"
+              accessibilityLabel={t.quiz.powerup(POWERUP_COST)}
+              accessibilityState={{ disabled: struck.length > 0 }}
               style={{
                 backgroundColor: struck.length ? color.ink4 : color.ink,
                 paddingHorizontal: 12,
@@ -503,6 +511,8 @@ export default function QuizScreen() {
               </View>
               <Pressable
                 onPress={next}
+                accessibilityRole="button"
+                accessibilityLabel={index + 1 >= round.length ? t.quiz.finish : t.quiz.next}
                 style={{
                   backgroundColor: color.gold,
                   borderWidth: border.thin,

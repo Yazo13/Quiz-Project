@@ -119,7 +119,13 @@ export default function LeaderboardScreen() {
           {filters.map((f) => {
             const active = filter === f;
             return (
-              <Pressable key={f} onPress={() => setFilter(f)}>
+              <Pressable
+                key={f}
+                accessibilityRole="button"
+                accessibilityLabel={t.leaderboard.filters[f]}
+                accessibilityState={{ selected: active }}
+                onPress={() => setFilter(f)}
+              >
                 <Chip
                   label={t.leaderboard.filters[f]}
                   background={active ? color.coral : color.surface}

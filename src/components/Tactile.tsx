@@ -100,6 +100,14 @@ interface ButtonProps extends SurfaceProps {
   disabled?: boolean;
   /** Skips the haptic tap — for rapid-fire controls like answer buttons. */
   silent?: boolean;
+  /**
+   * Only needed when the visible label is not the whole story — an icon-only
+   * button, or one whose meaning depends on surrounding context. A screen
+   * reader already reads the text inside the button.
+   */
+  accessibilityLabel?: string;
+  /** Reads as "selected" — for controls that act as a choice among several. */
+  selected?: boolean;
 }
 
 /**
@@ -120,6 +128,8 @@ export function Tactile({
   disabled,
   silent,
   style,
+  accessibilityLabel,
+  selected,
 }: ButtonProps) {
   const v = variants[variant];
   const press = useSharedValue(0);
@@ -139,6 +149,9 @@ export function Tactile({
   return (
     <Pressable
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: !!disabled, selected }}
       onPressIn={() => {
         press.value = withTiming(1, { duration: 90 });
       }}

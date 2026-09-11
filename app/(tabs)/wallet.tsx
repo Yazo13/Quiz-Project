@@ -179,6 +179,9 @@ export default function WalletScreen() {
               return (
                 <Pressable
                   key={m}
+                  accessibilityRole="button"
+                  accessibilityLabel={m === 'store' ? t.wallet.store : t.wallet.activity}
+                  accessibilityState={{ selected: active }}
                   onPress={() => setMode(m)}
                   style={{
                     flex: 1,
@@ -260,6 +263,10 @@ export default function WalletScreen() {
 
                         <Pressable
                           onPress={() => buy(p.tokens)}
+                          accessibilityRole="button"
+                          // The price alone reads as a label; the pack it buys
+                          // is the part a screen reader would otherwise miss.
+                          accessibilityLabel={`${group(p.tokens)} ${t.wallet.tokens} · ${p.price}`}
                           style={{
                             height: 36,
                             marginTop: 10,

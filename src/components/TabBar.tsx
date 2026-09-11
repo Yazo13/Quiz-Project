@@ -75,6 +75,9 @@ export function TabBar({ state, navigation }: TabBarProps) {
           return (
             <Pressable
               key={route.key}
+              accessibilityRole="tab"
+              accessibilityLabel={labels[route.name] ?? route.name}
+              accessibilityState={{ selected: focused }}
               onPress={() => {
                 const event = navigation.emit({
                   type: 'tabPress',
@@ -87,7 +90,9 @@ export function TabBar({ state, navigation }: TabBarProps) {
               }}
               style={{ flex: 1, alignItems: 'center', gap: 2 }}
             >
-              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              {/* The glyph repeats the label below it; announcing both would
+                  just read the tab name twice. */}
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" accessibilityElementsHidden>
                 <Path
                   d={icons[route.name] ?? icons.index}
                   stroke={tint}
