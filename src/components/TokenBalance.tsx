@@ -10,6 +10,7 @@ import Animated, {
 
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useT } from '../i18n';
 import { group } from '../lib/number';
 import { border, color, radius } from '../theme/tokens';
@@ -30,15 +31,21 @@ const HALO_PAD = 22;
 export function TokenBalance({ amount, onPress }: { amount: number; onPress?: () => void }) {
   const strings = useT();
   const label = strings.wallet.tokens;
+  const reduced = useReducedMotion();
   const t = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      // The halo stays, at its mid-loop strength; only the pulse stops.
+      t.value = 0.5;
+      return;
+    }
     t.value = withRepeat(
       withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     );
-  }, [t]);
+  }, [t, reduced]);
 
   const glow = useAnimatedStyle(() => ({
     opacity: 0.45 + t.value * 0.4,

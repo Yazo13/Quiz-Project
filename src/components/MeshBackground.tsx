@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { color, mesh } from '../theme/tokens';
 
 /**
@@ -25,15 +26,22 @@ import { color, mesh } from '../theme/tokens';
  */
 export function MeshBackground({ dim = false }: { dim?: boolean }) {
   const { width, height } = useWindowDimensions();
+  const reduced = useReducedMotion();
   const t = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      // Parked mid-drift rather than at zero: the blobs are positioned for the
+      // middle of the loop, so the field still looks composed when still.
+      t.value = 0.5;
+      return;
+    }
     t.value = withRepeat(
       withTiming(1, { duration: 18000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     );
-  }, [t]);
+  }, [t, reduced]);
 
   const breathe = useAnimatedStyle(() => ({
     transform: [{ scale: 1 + t.value * 0.04 }],

@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Path, RadialGradient, Stop } from 'react-native-svg';
 
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useLocale } from '../i18n';
 import { border, color, radius, typeMetrics } from '../theme/tokens';
 import { UI } from '../theme/type';
@@ -111,15 +112,20 @@ export function Chip({
 
 /** Streak flame — flickers on a 1.3s loop, same as the CSS. */
 export function Fire({ size = 14 }: { size?: number }) {
+  const reduced = useReducedMotion();
   const t = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      t.value = 0;
+      return;
+    }
     t.value = withRepeat(
       withTiming(1, { duration: 650, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     );
-  }, [t]);
+  }, [t, reduced]);
 
   const flicker = useAnimatedStyle(() => ({
     transform: [{ scale: 1 + t.value * 0.08 }, { rotate: `${-2 + t.value * 4}deg` }],
@@ -143,11 +149,18 @@ export function CompassMark({ size = 14, fill = color.ink }: { size?: number; fi
 
 /** The live pulse dot used next to "12,408 live" and similar. */
 export function LiveDot({ size = 8, tint = color.coral }: { size?: number; tint?: string }) {
+  const reduced = useReducedMotion();
   const t = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      // Held at the widest, faintest point so the dot keeps its halo and only
+      // loses the pulse.
+      t.value = 1;
+      return;
+    }
     t.value = withRepeat(withTiming(1, { duration: 900 }), -1, true);
-  }, [t]);
+  }, [t, reduced]);
 
   const halo = useAnimatedStyle(() => ({
     opacity: 0.35 - t.value * 0.25,

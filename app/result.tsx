@@ -10,6 +10,7 @@ import { MeshBackground } from '../src/components/MeshBackground';
 import { Coin, DottedRule } from '../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../src/components/Tactile';
 import { ROUND_LENGTH } from '../src/data/questions';
+import { useReducedMotion } from '../src/hooks/useReducedMotion';
 import { useT } from '../src/i18n';
 import { ENTRY_COST, WIN_THRESHOLD, useGame } from '../src/store/game';
 import { color, radius, screenPad } from '../src/theme/tokens';
@@ -19,6 +20,7 @@ export default function ResultScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const t = useT();
+  const reduced = useReducedMotion();
   const params = useLocalSearchParams<{ round?: string; outcome?: string }>();
 
   const rounds = useGame((s) => s.rounds);
@@ -57,8 +59,10 @@ export default function ResultScreen() {
               ? require('../assets/lottie/victory-burst.json')
               : require('../assets/lottie/defeat-drift.json')
           }
-          autoPlay
-          loop
+          // Confetti and drifting ash are the largest moving fields in the
+          // app; with reduce-motion on they hold on the first frame.
+          autoPlay={!reduced}
+          loop={!reduced}
           resizeMode="cover"
           style={StyleSheet.absoluteFill}
         />
