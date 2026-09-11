@@ -1,20 +1,5 @@
 
 
-```
-
-The suites cover the token economy and number formatting — the parts with rules
-rather than layout. They run under `node --test` with type stripping, no test
-framework installed.
-
-## State
-
-One zustand store (`src/store/game.ts`), persisted to AsyncStorage: token
-balance, points, streak, a ledger of every charge and credit, round history and
-which tournaments have been paid into. Every screen reads from it, so the
-balance in the arena header and the balance in the wallet cannot disagree.
-
-Its shape is deliberately what a `GET /me` would return, so the store becomes
-the response type when there is a server.
 
 ## Localisation
 
