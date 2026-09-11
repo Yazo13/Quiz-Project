@@ -2,73 +2,82 @@ import { useMemo } from 'react';
 
 import { useAccuracy, useGame } from '../store/game';
 import { color } from '../theme/tokens';
+import {
+  PLAYER_INITIALS,
+  PLAYER_NAME,
+  Points,
+  Standing,
+  rivals,
+} from './rivals';
 
-export interface Standing {
-  name: string;
-  pts: number;
-  streak: number;
-  /** Percent, stored rather than generated so re-renders don't reshuffle it. */
-  accuracy: number;
-  tint: string;
-  initials: string;
-  you?: boolean;
-}
+export { PLAYER_INITIALS, PLAYER_NAME, rivals } from './rivals';
+export type { Points, Standing } from './rivals';
 
-export interface Ranked extends Standing {
+/** Which slice of the board the leaderboard is showing. */
+export type Board = 'today' | 'weekly' | 'grand' | 'friends';
+
+export interface Ranked extends Omit<Standing, 'points'> {
   rank: number;
+  /** The figure for the window being shown, already selected. */
+  pts: number;
 }
 
-/**
- * Standing in for the other players until there is a server. Their scores are
- * fixed; only the player's move, so climbing the board is real even though the
- * opposition is not.
- */
-export const rivals: Standing[] = [
-  { name: 'Lasha M.', pts: 9180, streak: 12, accuracy: 91, tint: color.gold, initials: 'LM' },
-  { name: 'Nino K.', pts: 8420, streak: 7, accuracy: 86, tint: color.coral, initials: 'NK' },
-  { name: 'Tako J.', pts: 7964, streak: 4, accuracy: 82, tint: color.forest, initials: 'TJ' },
-  { name: 'Giorgi P.', pts: 7210, streak: 3, accuracy: 78, tint: color.sky2, initials: 'GP' },
-  { name: 'Mariam V.', pts: 6890, streak: 0, accuracy: 71, tint: '#5A3540', initials: 'MV' },
-  { name: 'Salome B.', pts: 6201, streak: 2, accuracy: 69, tint: color.forest, initials: 'SB' },
-  { name: 'Irakli D.', pts: 5984, streak: 0, accuracy: 66, tint: '#8E5A1B', initials: 'ID' },
-  { name: 'Anna L.', pts: 5712, streak: 8, accuracy: 88, tint: '#3F5F4A', initials: 'AL' },
-  { name: 'Beka R.', pts: 5503, streak: 1, accuracy: 62, tint: '#7E2D26', initials: 'BR' },
-];
-
-export const PLAYER_NAME = 'Davit G.';
-export const PLAYER_INITIALS = 'DG';
 /** Shown until enough rounds exist to compute a real figure. */
 const DEFAULT_ACCURACY = 84;
 
+const DAY = 24 * 60 * 60 * 1000;
+const WEEK = 7 * DAY;
+
+function pick(points: Points, board: Board) {
+  if (board === 'today') return points.day;
+  if (board === 'weekly') return points.week;
+  return points.all;
+}
+
 /**
- * The full board with the player slotted in by points. Both the leaderboard
- * and the profile badge read rank from here, so the two can never disagree.
+ * The board for one filter, with the player slotted in by points.
+ *
+ * The player's day and week figures are summed from their own round history,
+ * so the filters move the board rather than only recolouring a chip. All-time
+ * uses the account total, which includes the points they started with.
+ *
+ * Profile reads rank from here too, so the badge and the board cannot disagree.
  */
-export function useStandings() {
+export function useStandings(board: Board = 'grand') {
   const points = useGame((s) => s.points);
+  const rounds = useGame((s) => s.rounds);
   const streak = useGame((s) => s.streak);
   const accuracy = useAccuracy();
 
   return useMemo(() => {
+    const now = Date.now();
+    const since = (window: number) =>
+      rounds.reduce((sum, r) => (now - r.at <= window ? sum + r.points : sum), 0);
+
     const me: Standing = {
       name: PLAYER_NAME,
-      pts: points,
+      points: { day: since(DAY), week: since(WEEK), all: points },
       streak,
       accuracy: accuracy === null ? DEFAULT_ACCURACY : Math.round(accuracy * 100),
       tint: color.coral,
       initials: PLAYER_INITIALS,
       you: true,
+      friend: true,
     };
-    const board: Ranked[] = [...rivals, me]
+
+    const roster = board === 'friends' ? rivals.filter((r) => r.friend) : rivals;
+
+    const table: Ranked[] = [...roster, me]
+      .map(({ points: p, ...rest }) => ({ ...rest, pts: pick(p, board) }))
       .sort((a, b) => b.pts - a.pts)
       .map((s, i) => ({ ...s, rank: i + 1 }));
 
-    const self = board.find((s) => s.you)!;
+    const self = table.find((s) => s.you)!;
     return {
-      board,
+      board: table,
       me: self,
       /** The player directly above — the one worth chasing. Undefined at #1. */
-      ahead: board[self.rank - 2] as Ranked | undefined,
+      ahead: table[self.rank - 2] as Ranked | undefined,
     };
-  }, [points, streak, accuracy]);
+  }, [board, points, rounds, streak, accuracy]);
 }

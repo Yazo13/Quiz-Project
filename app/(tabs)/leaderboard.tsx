@@ -5,25 +5,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, Fire, LiveDot } from '../../src/components/Primitives';
 import { TactileSurface } from '../../src/components/Tactile';
-import { useStandings } from '../../src/data/standings';
+import { Board, useStandings } from '../../src/data/standings';
 import { useT } from '../../src/i18n';
 import { group } from '../../src/lib/number';
 import { useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
-const filters = ['today', 'weekly', 'grand', 'friends'] as const;
+const filters: Board[] = ['today', 'weekly', 'grand', 'friends'];
 
 export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
-  const [filter, setFilter] = useState<(typeof filters)[number]>('today');
+  const [filter, setFilter] = useState<Board>('today');
   const t = useT();
 
   const lastRound = useGame((s) => s.rounds[0]);
-  const { board, me, ahead } = useStandings();
+  const { board, me, ahead } = useStandings(filter);
 
-  // Visual order puts second on the left, first raised in the middle.
-  const podium = [board[1], board[0], board[2]];
+  // Visual order puts second on the left, first raised in the middle. A
+  // filtered board can be short, so anything missing is dropped rather than
+  // rendered as a hole.
+  const podium = [board[1], board[0], board[2]].filter(Boolean);
   const list = board.slice(3);
 
   return (
