@@ -1,10 +1,142 @@
+# Gargari Quiz
 
+Tournament-based trivia app — "adventures" theme, high-energy game feel rather than a form.
 
+[ქართულად](README.ka.md)
+
+The repo holds two things:
+
+| Folder | What it is |
+| --- | --- |
+| `design/` | The hi-fi design source, imported 1:1 from the design project. Plain HTML + JSX + CSS, opens in a browser, pan/zoom canvas with all six screens side by side. This is the visual source of truth. |
+| `app/`, `src/` | The real app — Expo / React Native, expo-router. |
+
+## Stack
+
+Expo SDK 57, React Native 0.86, React 19.2, TypeScript in strict mode. One
+codebase for iOS, Android and web. Routing is expo-router; state is zustand
+persisted to AsyncStorage; animation is Reanimated on the UI thread; graphics
+are react-native-svg, expo-linear-gradient and expo-blur, with Lottie for the
+end states.
+
+A real native app rather than a webview, but with no `ios/` or `android/`
+folders checked in — it runs through Expo Go. `npx expo prebuild` generates
+them when a store build or a custom native module is needed.
+
+Native module versions are pinned exactly, not by caret. Drifting off the
+version an SDK bundles is what breaks Expo Go, and it is not obvious from the
+error when it happens.
+
+## Design system
+
+Adventures palette, light. Paper-cream backgrounds, deep forest green, coral accent, gold tokens.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `paper` | `#F2E9D5` | Page background |
+| `cream` | `#FAF4E5` | Recessed surfaces |
+| `surface` | `#FFFFFF` | Cards |
+| `ink` | `#181512` | Text, dark cards, tab bar |
+| `forest` | `#144132` | Primary action, correct answer |
+| `coral` | `#FF4D2E` | Urgency, live, wrong answer |
+| `gold` | `#F0B23E` | Tokens, rewards, first place |
+
+Rules that give it the signature look:
+
+- **Border radius is either `0` or `24`.** Never anything in between. Adjacent elements deliberately alternate.
+- **Thick borders.** `2–3px` of `rgba(24,21,18,0.85)` on every interactive surface.
+- **Tactile shadow.** A hard `0 4px 0` offset under buttons and cards, which collapses to `0 1px 0` while pressed. In React Native this is a sibling `View` behind the element — RN has no hard box-shadow.
+- **Type.** Bebas Neue (condensed, uppercase) for titles; Space Grotesk for UI.
+- **Mesh gradient background.** Slow-drifting radial blobs, always alive behind the content.
+- **Frosted glass** for reward and prize callouts.
+
+## Screens
+
+1. **Arena** (home) — Grand Tournament card with live countdown + prize art, category scroller that filters the battle list, glowing token balance.
+2. **Quiz** — 5-second depleting progress bar, central media box (the anti-AI question format), four tactile answer buttons with spring press, 50/50 power-up.
+3. **Leaderboard** — your rank banner, podium, and a board that reorders by today, this week, all-time or friends.
+4. **Wallet & Store** — balance hero, token pack grid, activity log built from the ledger.
+5. **Victory** / 6. **Defeat** — end states with animated trophy and cracked compass.
+
+A seventh screen exists that nobody should see: an error boundary, exported
+from the root layout, which catches a thrown screen instead of letting the app
+go white.
+
+## The round
+
+A round is ten questions from a bank of twenty, dealt without replacement —
+the bank used to be walked with a modulo, which meant every round asked each
+question twice and the second half was free marks.
+
+Five seconds per question, and the clock is wall-clock rather than a
+countdown, so leaving the app does not pause it. Backgrounding the app to think
+was the one hole worth closing in a game whose whole premise is the time limit.
+
+## Accessibility
+
+Controls carry roles, labels, and selected and disabled state. Icon-only ones
+are labelled; the tab glyphs are hidden from the tree because they repeat the
+label directly beneath them.
+
+The design animates constantly — the mesh field, the balance halo, the live
+dot, the streak flame, the end-state confetti. All of it stands down when the
+OS reports reduce-motion, parking at a resting value rather than snapping to
+zero so it does not look like something failed to load. The quiz timer bar is
+exempt: it is the clock, not decoration.
+
+## Running
+
+The app:
+
+```bash
+npm install
+```
+
+```bash
+npm start
+```
+
+The design canvas (any static server works):
+
+```bash
+npm run design
+```
+
+Then open `Gargari Quiz.html`. It pulls React and Babel from a CDN, so it needs a network connection but no build step.
+
+Types and tests:
+
+```bash
+npm run typecheck
+```
+
+```bash
+npm test
+```
+
+The suites cover the token economy and number formatting — the parts with rules
+rather than layout. They run under `node --test` with type stripping, no test
+framework installed.
+
+## State
+
+One zustand store (`src/store/game.ts`), persisted to AsyncStorage: token
+balance, points, streak, a ledger of every charge and credit, round history and
+which tournaments have been paid into. Every screen reads from it, so the
+balance in the arena header and the balance in the wallet cannot disagree.
+
+Its shape is deliberately what a `GET /me` would return, so the store becomes
+the response type when there is a server.
 
 ## Localisation
 
 Georgian and English, switchable from the profile tab and persisted with the
-rest of the state. Georgian is the default.
+rest of the state.
+
+On first run the app follows the phone. `localePinned` separates a suggestion
+from a choice: while it is false the device language wins, and picking a
+language in the profile tab flips it, after which the player's choice sticks
+even if they later change the phone.
 
 `src/i18n/en.ts` defines both the English copy and the type every other locale
 has to satisfy — a missing or renamed key is a compile error, never a blank
