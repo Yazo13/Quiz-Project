@@ -320,6 +320,42 @@ export const questions: Question[] = [
   },
 ];
 
+/** Fisher-Yates, in place. */
+function shuffle<T>(items: T[]): T[] {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
+
+/**
+ * A question as it is actually asked: same content, answers in a fresh order.
+ *
+ * `correct` points at the new position, so the screen needs no idea that
+ * anything moved.
+ */
+export type RoundQuestion = Question;
+
+/**
+ * Deals one question with its answers reordered.
+ *
+ * Both locales get the *same* permutation — they are the same four options in
+ * two languages, and shuffling them independently would put the Georgian
+ * answer under a different letter than the English one.
+ */
+export function shuffleAnswers(q: Question): RoundQuestion {
+  const order = shuffle([0, 1, 2, 3]);
+  const pickFrom = (answers: readonly string[]) =>
+    order.map((i) => answers[i]) as [string, string, string, string];
+
+  return {
+    ...q,
+    answers: { en: pickFrom(q.answers.en), ka: pickFrom(q.answers.ka) },
+    correct: order.indexOf(q.correct) as 0 | 1 | 2 | 3,
+  };
+}
+
 /**
  * One round's worth of questions, drawn without replacement.
  *
@@ -327,12 +363,16 @@ export const questions: Question[] = [
  * over a five-question bank showed every question twice — the second half was
  * free marks. Shuffling a copy and taking the first `length` makes a repeat
  * impossible within a round.
+ *
+ * Answers are reordered too. The bank is fixed and small, so a player who
+ * sees a question twice across two rounds would otherwise be answering from
+ * the position they remember rather than the question.
  */
-export function buildRound(length = ROUND_LENGTH, bank: Question[] = questions): Question[] {
-  const pool = [...bank];
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  return pool.slice(0, Math.min(length, pool.length));
+export function buildRound(
+  length = ROUND_LENGTH,
+  bank: Question[] = questions,
+): RoundQuestion[] {
+  return shuffle([...bank])
+    .slice(0, Math.min(length, bank.length))
+    .map(shuffleAnswers);
 }

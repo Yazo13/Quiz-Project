@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ROUND_LENGTH, buildRound, questions } from './questions.ts';
+import { ROUND_LENGTH, buildRound, questions, shuffleAnswers } from './questions.ts';
 
 describe('the question bank', () => {
   it('holds at least a full round, or rounds would repeat', () => {
@@ -71,5 +71,56 @@ describe('buildRound', () => {
   it('deals what it can when the bank is smaller than a round', () => {
     const short = questions.slice(0, 3);
     assert.equal(buildRound(ROUND_LENGTH, short).length, 3);
+  });
+
+  it('reorders the answers it deals', () => {
+    const original = questions[0].answers.en.join();
+    let moved = false;
+    for (let attempt = 0; attempt < 50 && !moved; attempt++) {
+      const dealt = buildRound(ROUND_LENGTH).find((q) => q.id === questions[0].id);
+      if (dealt && dealt.answers.en.join() !== original) moved = true;
+    }
+    assert.ok(moved, 'a fixed position is memorable across rounds');
+  });
+});
+
+describe('shuffleAnswers', () => {
+  it('keeps correct pointing at the same answer text', () => {
+    for (const q of questions) {
+      const before = { en: q.answers.en[q.correct], ka: q.answers.ka[q.correct] };
+      for (let attempt = 0; attempt < 50; attempt++) {
+        const dealt = shuffleAnswers(q);
+        assert.equal(dealt.answers.en[dealt.correct], before.en, `question ${q.id}`);
+        assert.equal(dealt.answers.ka[dealt.correct], before.ka, `question ${q.id}`);
+      }
+    }
+  });
+
+  it('keeps both languages in the same order', () => {
+    for (const q of questions) {
+      const dealt = shuffleAnswers(q);
+      // Every English answer must sit at the index its Georgian twin does.
+      for (let i = 0; i < 4; i++) {
+        const source = q.answers.en.indexOf(dealt.answers.en[i]);
+        assert.equal(dealt.answers.ka[i], q.answers.ka[source], `question ${q.id}`);
+      }
+    }
+  });
+
+  it('keeps all four answers, losing and duplicating none', () => {
+    for (const q of questions) {
+      const dealt = shuffleAnswers(q);
+      assert.deepEqual([...dealt.answers.en].sort(), [...q.answers.en].sort());
+      assert.deepEqual([...dealt.answers.ka].sort(), [...q.answers.ka].sort());
+    }
+  });
+
+  it('does not mutate the bank', () => {
+    const snapshot = questions.map((q) => q.answers.en.join());
+    questions.forEach(shuffleAnswers);
+    assert.deepEqual(
+      questions.map((q) => q.answers.en.join()),
+      snapshot,
+    );
   });
 });
