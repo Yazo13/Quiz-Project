@@ -191,6 +191,31 @@ export default function QuizScreen() {
     setIndex((i) => i + 1);
   };
 
+  /**
+   * Leaves the round early.
+   *
+   * The questions already answered are banked rather than discarded, and the
+   * round is recorded against what was actually seen rather than its full
+   * length. Throwing the score away would make quitting the right move any
+   * time a streak looked at risk, which is the opposite of what an escape
+   * hatch is for.
+   */
+  const quit = () => {
+    stopTimers();
+    const answered = times.current.length;
+    if (answered === 0) {
+      router.replace('/');
+      return;
+    }
+    const result = finishRound({
+      correct: score,
+      total: answered,
+      bestStreak: bestStreak.current,
+      avgMs: times.current.reduce((a, b) => a + b, 0) / answered,
+    });
+    router.replace(`/result?round=${result.id}`);
+  };
+
   // Strikes out two of the three wrong answers, leaving a coin flip.
   const useFiftyFifty = () => {
     if (revealed || struck.length) return;
@@ -238,6 +263,30 @@ export default function QuizScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Pressable
+              onPress={quit}
+              accessibilityRole="button"
+              accessibilityLabel={t.quiz.quit}
+              hitSlop={10}
+              style={{
+                width: 26,
+                height: 26,
+                borderWidth: border.thin,
+                borderColor: color.lineStrong,
+                backgroundColor: color.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Svg width={11} height={11} viewBox="0 0 24 24">
+                <Path
+                  d="M5 5l14 14M19 5L5 19"
+                  stroke={color.ink}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                />
+              </Svg>
+            </Pressable>
             <Chip
               label={t.quiz.progress(index + 1, round.length)}
               background={color.ink}

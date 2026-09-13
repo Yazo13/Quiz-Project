@@ -66,6 +66,7 @@ export const en = {
   quiz: {
     progress: (n: number, total: number) => `Q ${n} / ${total}`,
     secure: 'Secure',
+    quit: 'Leave round',
     liveImage: 'Live image',
     mediaId: (id: string) => `ID #${id} · Verified ✓`,
     powerup: (cost: number) => `50/50 power-up · ${cost} tokens`,

@@ -65,6 +65,7 @@ export const ka: Strings = {
   quiz: {
     progress: (n: number, total: number) => `კითხვა ${n} / ${total}`,
     secure: 'დაცული',
+    quit: 'რაუნდის დატოვება',
     liveImage: 'ცოცხალი სურათი',
     mediaId: (id: string) => `ID #${id} · დადასტურებული ✓`,
     powerup: (cost: number) => `50/50 დახმარება · ${cost} ტოკენი`,
