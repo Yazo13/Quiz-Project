@@ -101,6 +101,8 @@ export const en = {
     tryAgain: (cost: number) => `Try again · ${cost}`,
     notEnough: 'Not enough tokens',
     share: 'Share result',
+    shareMessage: (correct: number, total: number, points: number) =>
+      `${correct}/${total} in Gargari Quiz — ${points} points. Five seconds a question.`,
     backToArena: 'Back to Arena',
   },
 

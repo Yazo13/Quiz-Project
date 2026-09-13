@@ -100,6 +100,8 @@ export const ka: Strings = {
     tryAgain: (cost: number) => `თავიდან · ${cost}`,
     notEnough: 'ტოკენი არ გყოფნის',
     share: 'შედეგის გაზიარება',
+    shareMessage: (correct: number, total: number, points: number) =>
+      `${correct}/${total} Gargari Quiz-ში — ${points} ქულა. კითხვაზე ხუთი წამი.`,
     backToArena: 'არენაზე დაბრუნება',
   },
 

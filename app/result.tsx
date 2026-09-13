@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Share, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
@@ -39,6 +39,21 @@ export default function ResultScreen() {
     ((round?.avgMs ?? (won ? 4200 : 4800)) / 1000).toFixed(1),
   );
   const reward = round?.earned ?? (won ? 480 : 15);
+
+  /**
+   * Hands the score to the OS share sheet.
+   *
+   * Nothing is uploaded and no link is generated — there is no server to host
+   * a result yet, so the message is the result. Share can reject when the
+   * sheet is dismissed on iOS, which is a normal outcome rather than an
+   * error, so the rejection is swallowed.
+   */
+  const share = () => {
+    const points = round?.points ?? correct * 120;
+    Share.share({
+      message: t.result.shareMessage(correct, total, points),
+    }).catch(() => {});
+  };
 
   const retry = () => {
     if (!spend('entry', ENTRY_COST, 'Retry')) {
@@ -194,7 +209,8 @@ export default function ResultScreen() {
             variant="paper"
             height={48}
             radius={radius.soft}
-            onPress={() => router.replace('/')}
+            onPress={won ? share : () => router.replace('/')}
+            accessibilityLabel={won ? t.result.share : t.result.backToArena}
           >
             <TactileLabel color={color.ink}>
               {won ? t.result.share : t.result.backToArena}
