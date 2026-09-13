@@ -19,7 +19,7 @@ import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tact
 import { TokenBalance } from '../../src/components/TokenBalance';
 import { formatHMS, useCountdown } from '../../src/hooks/useCountdown';
 import { useT } from '../../src/i18n';
-import { ENTRY_COST, useGame } from '../../src/store/game';
+import { DAILY_TOKENS, ENTRY_COST, dailyAvailable, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
@@ -59,6 +59,18 @@ export default function ArenaScreen() {
   const joinTournament = useGame((s) => s.joinTournament);
   const spend = useGame((s) => s.spend);
   const [short, setShort] = useState(false);
+
+  const lastDailyAt = useGame((s) => s.lastDailyAt);
+  const claimDaily = useGame((s) => s.claimDaily);
+  // Recomputed each render rather than cached: the screen is long-lived and
+  // the answer changes at midnight without anything else changing.
+  const [dailyTaken, setDailyTaken] = useState(false);
+  const dailyOpen = !dailyTaken && dailyAvailable(lastDailyAt);
+
+  const takeDaily = () => {
+    claimDaily();
+    setDailyTaken(true);
+  };
 
   // The seat is bought once; entering again afterwards is free.
   const enterGrand = () => {
@@ -111,6 +123,26 @@ export default function ArenaScreen() {
           </View>
           <TokenBalance amount={tokens} onPress={() => router.push('/wallet')} />
         </View>
+
+        {/* Daily bonus — only while there is one to take, so the arena does
+            not carry a permanently dead row. */}
+        {dailyOpen && (
+          <View style={{ paddingHorizontal: screenPad, paddingTop: 14 }}>
+            <Tactile
+              variant="gold"
+              height={52}
+              radius={radius.soft}
+              onPress={takeDaily}
+              accessibilityLabel={`${t.arena.daily} — ${t.arena.dailyClaim(DAILY_TOKENS)}`}
+            >
+              <Coin size={18} />
+              <TactileLabel color={color.ink}>{t.arena.daily}</TactileLabel>
+              <UI size={13} weight="bold" color={color.forest}>
+                {t.arena.dailyClaim(DAILY_TOKENS)}
+              </UI>
+            </Tactile>
+          </View>
+        )}
 
         {/* Hero */}
         <View

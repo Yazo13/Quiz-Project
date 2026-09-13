@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
 
 import {
+  DAILY_TOKENS,
+  dailyAvailable,
   ENTRY_COST,
   POWERUP_COST,
   WIN_THRESHOLD,
@@ -104,6 +106,43 @@ describe('finishing a round', () => {
       state().rounds.map((r) => r.correct),
       [8, 4],
     );
+  });
+});
+
+describe('the daily bonus', () => {
+  it('pays the first time it is asked for', () => {
+    assert.equal(state().claimDaily(), true);
+    assert.equal(state().tokens, START_TOKENS + DAILY_TOKENS);
+    assert.equal(state().ledger[0].kind, 'daily');
+  });
+
+  it('refuses a second time on the same day', () => {
+    state().claimDaily();
+    const after = state().tokens;
+
+    assert.equal(state().claimDaily(), false);
+    assert.equal(state().tokens, after);
+    assert.equal(state().ledger.length, 1, 'a refusal writes no ledger row');
+  });
+
+  it('opens again on the next calendar day, not after 24 hours', () => {
+    const elevenPm = new Date(2026, 8, 13, 23, 0).getTime();
+    const midnightPast = new Date(2026, 8, 14, 0, 30).getTime();
+    const sameEvening = new Date(2026, 8, 13, 23, 59).getTime();
+
+    assert.equal(dailyAvailable(elevenPm, sameEvening), false);
+    assert.equal(dailyAvailable(elevenPm, midnightPast), true, 'ninety minutes later, new day');
+  });
+
+  it('is open to a player who has never claimed', () => {
+    assert.equal(dailyAvailable(null), true);
+  });
+
+  it('is cleared by a reset', () => {
+    state().claimDaily();
+    state().resetProgress();
+    assert.equal(state().lastDailyAt, null);
+    assert.equal(state().claimDaily(), true);
   });
 });
 

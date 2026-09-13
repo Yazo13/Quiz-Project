@@ -56,6 +56,20 @@ export const WIN_THRESHOLD = 6;
 export const ENTRY_COST = 50;
 /** Cost of the 50/50 power-up inside a round. */
 export const POWERUP_COST = 25;
+/** Paid once a calendar day for opening the app. */
+export const DAILY_TOKENS = 25;
+
+/** Local calendar day, so "once a day" means what the player's clock says. */
+function dayKey(at: number) {
+  const d = new Date(at);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+/** True when the daily bonus has not been taken on this calendar day. */
+export function dailyAvailable(lastDailyAt: number | null, now = Date.now()) {
+  return lastDailyAt === null || dayKey(lastDailyAt) !== dayKey(now);
+}
+
 const POINTS_PER_CORRECT = 120;
 /** Won rounds pay per correct answer plus a streak kicker; losses pay a floor. */
 const TOKENS_PER_CORRECT = 50;
@@ -82,6 +96,8 @@ interface GameState {
   rounds: RoundResult[];
   /** Tournament ids the player has paid into. */
   joined: string[];
+  /** When the daily bonus was last taken. Null until the first claim. */
+  lastDailyAt: number | null;
   /**
    * False until the player picks a language themselves. While it is false the
    * app is free to follow the device; once they choose, their choice sticks
@@ -92,6 +108,8 @@ interface GameState {
   setLocale: (locale: Locale) => void;
   /** Adopts a language without marking it as the player's own choice. */
   suggestLocale: (locale: Locale) => void;
+  /** Credits the daily bonus. Returns false when it is already taken today. */
+  claimDaily: () => boolean;
   /** Returns false when the balance is short; the caller decides how to refuse. */
   spend: (kind: TxKind, amount: number, detail?: string) => boolean;
   credit: (kind: TxKind, amount: number, detail?: string) => void;
@@ -147,6 +165,7 @@ export const useGame = create<GameState>()(
       ledger: [],
       rounds: [],
       joined: [],
+      lastDailyAt: null,
       localePinned: false,
 
       setLocale: (locale) => set({ locale, localePinned: true }),
@@ -175,6 +194,14 @@ export const useGame = create<GameState>()(
             ...s.ledger,
           ].slice(0, 50),
         })),
+
+      claimDaily: () => {
+        const now = Date.now();
+        if (!dailyAvailable(get().lastDailyAt, now)) return false;
+        get().credit('daily', DAILY_TOKENS);
+        set({ lastDailyAt: now });
+        return true;
+      },
 
       joinTournament: (id, cost, detail) => {
         if (get().joined.includes(id)) return true;
@@ -228,6 +255,7 @@ export const useGame = create<GameState>()(
           ledger: [],
           rounds: [],
           joined: [],
+          lastDailyAt: null,
         }),
     }),
     {
