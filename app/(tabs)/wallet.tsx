@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -12,6 +12,9 @@ import { relative } from '../../src/lib/time';
 import { useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
+
+/** How long an armed pack waits for its second tap. */
+const ARM_TIMEOUT = 4000;
 
 /** Tokens per US dollar, taken from the headline $9.99 / 1,200 pack. */
 const TOKENS_PER_DOLLAR = 120;
@@ -56,8 +59,33 @@ export default function WalletScreen() {
   const credit = useGame((s) => s.credit);
   const weekly = useWeeklyEarned();
 
-  const buy = (amount: number) => {
+  /**
+   * The pack waiting on a second tap.
+   *
+   * A single tap used to credit tokens outright, with no confirmation and no
+   * way back — which is the wrong shape for a control that will eventually
+   * charge a card. Arming first turns a misfire into a no-op, and it disarms
+   * itself so a pack cannot sit primed indefinitely.
+   */
+  const [armed, setArmed] = useState<number | null>(null);
+  const disarm = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (disarm.current) clearTimeout(disarm.current);
+  }, []);
+
+  const tapPack = (amount: number) => {
+    if (disarm.current) clearTimeout(disarm.current);
+
+    if (armed !== amount) {
+      setArmed(amount);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      disarm.current = setTimeout(() => setArmed(null), ARM_TIMEOUT);
+      return;
+    }
+
     // Standing in for the real IAP call, which needs a development build.
+    setArmed(null);
     credit('pack', amount, group(amount));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setMode('activity');
@@ -270,16 +298,25 @@ export default function WalletScreen() {
                         </View>
 
                         <Pressable
-                          onPress={() => buy(p.tokens)}
+                          onPress={() => tapPack(p.tokens)}
                           accessibilityRole="button"
                           // The price alone reads as a label; the pack it buys
                           // is the part a screen reader would otherwise miss.
-                          accessibilityLabel={`${group(p.tokens)} ${t.wallet.tokens} · ${p.price}`}
+                          accessibilityLabel={
+                            armed === p.tokens
+                              ? t.wallet.confirmBuy(p.price)
+                              : `${group(p.tokens)} ${t.wallet.tokens} · ${p.price}`
+                          }
                           style={{
                             height: 36,
                             marginTop: 10,
                             borderRadius: v.r === radius.soft ? 18 : radius.sharp,
-                            backgroundColor: onDark ? 'rgba(255,255,255,0.18)' : color.ink,
+                            backgroundColor:
+                              armed === p.tokens
+                                ? color.coral
+                                : onDark
+                                  ? 'rgba(255,255,255,0.18)'
+                                  : color.ink,
                             borderWidth: border.thin,
                             borderColor: onDark ? 'rgba(255,255,255,0.4)' : color.lineStrong,
                             alignItems: 'center',
@@ -287,7 +324,7 @@ export default function WalletScreen() {
                           }}
                         >
                           <UI size={13} weight="bold" color={color.white}>
-                            {p.price}
+                            {armed === p.tokens ? t.wallet.confirmBuy(p.price) : p.price}
                           </UI>
                         </Pressable>
                       </View>
