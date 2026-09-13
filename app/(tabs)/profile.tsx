@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -5,15 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, DottedRule, Fire } from '../../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
+import { achievements, sortForShelf } from '../../src/data/achievements';
 import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
 import { localeNames, useLocale, useSetLocale, useT } from '../../src/i18n';
 import { Locale, useAccuracy, useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
-const trophyKeys = ['grand', 'speedRun', 'quickfire'] as const;
-const trophyMonths = ['may', 'april', 'march'] as const;
-const trophyTints = [color.gold2, color.forest, color.coral];
+const trophyTints = [color.gold2, color.forest, color.coral, color.sky2, color.gold];
+const trophyTint = (i: number) => trophyTints[i % trophyTints.length];
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -23,8 +24,16 @@ export default function ProfileScreen() {
   const locale = useLocale();
   const setLocale = useSetLocale();
 
-  const rounds = useGame((s) => s.rounds.length);
+  const roundHistory = useGame((s) => s.rounds);
+  const tokens = useGame((s) => s.tokens);
+  const rounds = roundHistory.length;
   const streak = useGame((s) => s.streak);
+
+  const shelf = useMemo(
+    () => sortForShelf(achievements({ rounds: roundHistory, tokens })),
+    [roundHistory, tokens],
+  );
+  const locked = shelf.filter((a) => !a.earned).length;
   const resetProgress = useGame((s) => s.resetProgress);
   const accuracy = useAccuracy();
   const { me } = useStandings();
@@ -95,23 +104,39 @@ export default function ProfileScreen() {
 
         {/* Trophies */}
         <View style={{ paddingHorizontal: screenPad, paddingTop: 24 }}>
-          <Display size={22} style={{ marginBottom: 10 }}>
-            {t.profile.trophies}
-          </Display>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              marginBottom: 10,
+            }}
+          >
+            <Display size={22}>{t.profile.trophies}</Display>
+            {locked > 0 && (
+              <UI size={11} weight="semibold" color={color.ink3}>
+                {t.profile.lockedTrophies(locked)}
+              </UI>
+            )}
+          </View>
           <View style={{ gap: 10 }}>
-            {trophyKeys.map((key, i) => (
+            {shelf.map((a, i) => (
               <View
-                key={key}
+                key={a.id}
+                accessibilityLabel={`${t.profile.achievements[a.id].title} — ${t.profile.achievements[a.id].note}`}
+                accessibilityState={{ disabled: !a.earned }}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
                   paddingHorizontal: 14,
                   paddingVertical: 12,
-                  backgroundColor: color.surface,
+                  backgroundColor: a.earned ? color.surface : color.bgCream,
                   borderWidth: border.medium,
                   borderColor: color.lineStrong,
                   borderRadius: i % 2 === 0 ? radius.sharp : radius.soft,
+                  // Unearned entries stay legible but visibly not yours yet.
+                  opacity: a.earned ? 1 : 0.55,
                 }}
               >
                 <View
@@ -119,17 +144,28 @@ export default function ProfileScreen() {
                     width: 36,
                     height: 36,
                     borderRadius: 18,
-                    backgroundColor: trophyTints[i],
+                    backgroundColor: a.earned ? trophyTint(i) : 'transparent',
                     borderWidth: border.thin,
+                    borderStyle: a.earned ? 'solid' : 'dashed',
                     borderColor: color.lineStrong,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
+                >
+                  {!a.earned && a.progress && (
+                    <UI size={10} weight="bold" color={color.ink3}>
+                      {a.progress.have}
+                    </UI>
+                  )}
+                </View>
                 <View style={{ flex: 1 }}>
                   <UI size={14} weight="bold">
-                    {t.profile.trophyList[key]}
+                    {t.profile.achievements[a.id].title}
                   </UI>
                   <UI size={11} color={color.ink3}>
-                    {t.profile.months[trophyMonths[i]]}
+                    {a.earned && a.at
+                      ? new Date(a.at).toLocaleDateString()
+                      : t.profile.achievements[a.id].note}
                   </UI>
                 </View>
               </View>
@@ -137,8 +173,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* End states are otherwise only reachable by finishing a round —
-            these shortcuts keep them reviewable. */}
         {/* Language — the one setting that changes every other screen, so it
             sits above the debug shortcuts rather than buried under them. */}
         <View style={{ paddingHorizontal: screenPad, paddingTop: 24 }}>
