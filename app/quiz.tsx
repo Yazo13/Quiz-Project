@@ -2,7 +2,6 @@
 import { AppState, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   Easing,
@@ -19,6 +18,7 @@ import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
 import { TIME_LIMIT, buildRound } from '../src/data/questions';
 import { useLocale, useT } from '../src/i18n';
+import { failed, succeeded, tapped, warned } from '../src/lib/feedback';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
@@ -79,7 +79,7 @@ export default function QuizScreen() {
     // A question left unanswered costs the full budget.
     times.current.push(TIME_LIMIT * 1000);
     stopTimers();
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    warned();
   }, [stopTimers]);
 
   // One timer lifecycle per question.
@@ -165,10 +165,10 @@ export default function QuizScreen() {
         bestStreak.current = Math.max(bestStreak.current, next);
         return next;
       });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      succeeded();
     } else {
       setStreak(0);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      failed();
     }
   };
 
@@ -226,7 +226,7 @@ export default function QuizScreen() {
     const wrong = [0, 1, 2, 3].filter((i) => i !== question.correct);
     const drop = wrong.sort(() => Math.random() - 0.5).slice(0, 2);
     setStruck(drop);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    tapped();
   };
 
   const correctPicked = selected === question.correct;

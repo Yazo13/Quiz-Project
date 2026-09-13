@@ -1,12 +1,12 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Coin } from '../../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { Strings, useT } from '../../src/i18n';
+import { succeeded, tapped } from '../../src/lib/feedback';
 import { group } from '../../src/lib/number';
 import { relative } from '../../src/lib/time';
 import { useGame, useWeeklyEarned } from '../../src/store/game';
@@ -79,7 +79,7 @@ export default function WalletScreen() {
 
     if (armed !== amount) {
       setArmed(amount);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      tapped();
       disarm.current = setTimeout(() => setArmed(null), ARM_TIMEOUT);
       return;
     }
@@ -87,7 +87,7 @@ export default function WalletScreen() {
     // Standing in for the real IAP call, which needs a development build.
     setArmed(null);
     credit('pack', amount, group(amount));
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    succeeded();
     setMode('activity');
   };
 

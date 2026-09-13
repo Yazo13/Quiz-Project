@@ -98,6 +98,8 @@ interface GameState {
   joined: string[];
   /** When the daily bonus was last taken. Null until the first claim. */
   lastDailyAt: number | null;
+  /** Whether presses vibrate. On by default; the design leans on the feel. */
+  haptics: boolean;
   /**
    * False until the player picks a language themselves. While it is false the
    * app is free to follow the device; once they choose, their choice sticks
@@ -110,6 +112,7 @@ interface GameState {
   suggestLocale: (locale: Locale) => void;
   /** Credits the daily bonus. Returns false when it is already taken today. */
   claimDaily: () => boolean;
+  setHaptics: (on: boolean) => void;
   /** Returns false when the balance is short; the caller decides how to refuse. */
   spend: (kind: TxKind, amount: number, detail?: string) => boolean;
   credit: (kind: TxKind, amount: number, detail?: string) => void;
@@ -166,6 +169,7 @@ export const useGame = create<GameState>()(
       rounds: [],
       joined: [],
       lastDailyAt: null,
+      haptics: true,
       localePinned: false,
 
       setLocale: (locale) => set({ locale, localePinned: true }),
@@ -194,6 +198,8 @@ export const useGame = create<GameState>()(
             ...s.ledger,
           ].slice(0, 50),
         })),
+
+      setHaptics: (on) => set({ haptics: on }),
 
       claimDaily: () => {
         const now = Date.now();

@@ -45,6 +45,8 @@ export default function ProfileScreen() {
   );
   const locked = shelf.filter((a) => !a.earned).length;
   const recent = roundHistory.slice(0, RECENT_ROUNDS);
+  const haptics = useGame((st) => st.haptics);
+  const setHaptics = useGame((st) => st.setHaptics);
   const resetProgress = useGame((s) => s.resetProgress);
   const accuracy = useAccuracy();
   const { me } = useStandings();
@@ -287,6 +289,48 @@ export default function ProfileScreen() {
                 >
                   <UI size={14} weight="bold" color={active ? color.gold : color.ink}>
                     {localeNames[code]}
+                  </UI>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Vibration — the design leans on the press feel, so this is on by
+            default, but an app that buzzes on every tap needs a way to stop. */}
+        <View style={{ paddingHorizontal: screenPad, paddingTop: 24 }}>
+          <Eyebrow size={11} style={{ marginBottom: 10 }}>
+            {t.profile.haptics}
+          </Eyebrow>
+          <View
+            style={{
+              flexDirection: 'row',
+              borderWidth: border.medium,
+              borderColor: color.lineStrong,
+              backgroundColor: color.surface,
+              overflow: 'hidden',
+            }}
+          >
+            {[true, false].map((on) => {
+              const active = haptics === on;
+              const label = on ? t.profile.hapticsOn : t.profile.hapticsOff;
+              return (
+                <Pressable
+                  key={String(on)}
+                  accessibilityRole="button"
+                  accessibilityLabel={label}
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setHaptics(on)}
+                  style={{
+                    flex: 1,
+                    height: 46,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: active ? color.ink : 'transparent',
+                  }}
+                >
+                  <UI size={14} weight="bold" color={active ? color.gold : color.ink}>
+                    {label}
                   </UI>
                 </Pressable>
               );

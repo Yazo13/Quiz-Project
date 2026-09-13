@@ -7,8 +7,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 
+import { tapped } from '../lib/feedback';
 import { border, color, depth as DEPTH, radius } from '../theme/tokens';
 import { UI } from '../theme/type';
 
@@ -164,7 +164,7 @@ export function Tactile({
         );
       }}
       onPress={() => {
-        if (!silent) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (!silent) tapped();
         onPress?.();
       }}
       style={style}
