@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
   Easing,

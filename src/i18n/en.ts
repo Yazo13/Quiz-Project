@@ -1,4 +1,6 @@
-﻿import { group } from '../lib/number';
+// Explicit extension: the parity suite imports these tables directly under
+// Node, whose ESM loader resolves the real filename.
+import { group } from '../lib/number.ts';
 import type { RelativeUnit } from '../lib/time';
 import type { TxKind } from '../store/game';
 
