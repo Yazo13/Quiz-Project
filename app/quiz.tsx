@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-import { EstateScene } from '../src/components/EstateScene';
+import { QuestionScene } from '../src/components/QuestionScene';
 import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
@@ -348,7 +348,7 @@ export default function QuizScreen() {
               overflow: 'hidden',
             }}
           >
-            <EstateScene />
+            <QuestionScene mediaId={question.mediaId} />
 
             <View
               style={{
