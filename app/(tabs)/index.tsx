@@ -45,7 +45,7 @@ const battles = [
 export default function ArenaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const total = useCountdown(3 * 3600 + 47 * 60 + 22);
+  const { seconds: total, done: started } = useCountdown(3 * 3600 + 47 * 60 + 22);
   const { h, m, s } = formatHMS(total);
   // Null means no filter. Tapping the selected category clears it, which is
   // the only way back to the full list from the scroller itself.
@@ -89,7 +89,9 @@ export default function ArenaScreen() {
     router.push('/quiz');
   };
 
-  const seatLabel = joined
+  const seatLabel = started
+    ? t.arena.enterLive
+    : joined
     ? t.arena.enterTournament
     : short && tokens < ENTRY_COST
       ? t.arena.notEnough
@@ -234,12 +236,34 @@ export default function ArenaScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Eyebrow size={11}>{t.arena.startsIn}</Eyebrow>
+                <Eyebrow size={11} color={started ? color.coral : color.ink3}>
+                  {started ? t.arena.started : t.arena.startsIn}
+                </Eyebrow>
                 <Eyebrow size={11} color={color.coral}>
                   {t.arena.hot(3402)}
                 </Eyebrow>
               </View>
 
+              {started ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    borderWidth: border.thin,
+                    borderColor: color.lineStrong,
+                    backgroundColor: color.coralSoft,
+                    paddingVertical: 12,
+                    paddingHorizontal: 14,
+                    marginBottom: 12,
+                  }}
+                >
+                  <LiveDot size={8} />
+                  <Display size={22} color={color.ink}>
+                    {t.arena.started}
+                  </Display>
+                </View>
+              ) : (
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                 {[
                   { v: h, l: t.arena.hours },
@@ -266,6 +290,7 @@ export default function ArenaScreen() {
                   </View>
                 ))}
               </View>
+              )}
 
               <Tactile
                 variant="forest"

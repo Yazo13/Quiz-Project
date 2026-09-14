@@ -40,6 +40,8 @@ export const ka: Strings = {
     prizeName: 'წინანდლის მამული · 2 ღამე',
     worth: 'ღირებულება',
     startsIn: 'ტურნირი დაიწყება',
+    started: 'უკვე მიმდინარეობს',
+    enterLive: 'შეუერთდი მიმდინარეს',
     hot: (n: number) => `● ცხელი · ${group(n)} მონაწილე`,
     hours: 'საათი',
     minutes: 'წუთი',

@@ -41,6 +41,8 @@ export const en = {
     prizeName: 'Tsinandali Estate · 2 nights',
     worth: 'Worth',
     startsIn: 'Tournament starts in',
+    started: 'Underway now',
+    enterLive: 'Join in progress',
     hot: (n: number) => `● Hot · ${group(n)} in`,
     hours: 'Hours',
     minutes: 'Min',
