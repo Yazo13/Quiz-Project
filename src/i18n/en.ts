@@ -85,6 +85,8 @@ export const en = {
     wrong: 'Wrong',
     streak: (n: number) => `Streak: ×${n}`,
     streakReset: 'Streak: reset to 0',
+    correctWas: (answer: string) => `The answer was ${answer}`,
+    mediaLabel: (id: string) => `Question image, ID ${id}`,
     next: 'Next →',
     finish: 'Finish →',
     playingNow: (n: number) => `+ ${group(n)} playing now`,

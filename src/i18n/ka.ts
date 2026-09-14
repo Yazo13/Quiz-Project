@@ -84,6 +84,8 @@ export const ka: Strings = {
     wrong: 'არასწორია',
     streak: (n: number) => `სერია: ×${n}`,
     streakReset: 'სერია: განულდა',
+    correctWas: (answer: string) => `სწორი პასუხი იყო ${answer}`,
+    mediaLabel: (id: string) => `კითხვის სურათი, ID ${id}`,
     next: 'შემდეგი →',
     finish: 'დასრულება →',
     playingNow: (n: number) => `+ ${group(n)} თამაშობს ახლა`,

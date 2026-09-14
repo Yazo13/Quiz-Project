@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Pressable, View } from 'react-native';
+import { AccessibilityInfo, AppState, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -144,6 +144,34 @@ export default function QuizScreen() {
 
     return () => sub.remove();
   }, [revealed, progress, timeOut]);
+
+  /**
+   * Says out loud what the colours say.
+   *
+   * Right and wrong are carried entirely by fill colour and a spring — a
+   * screen reader user got a silent redraw and no idea which way it went. The
+   * wrong-answer case also reads out what the answer actually was, since the
+   * highlight that shows it is equally invisible.
+   *
+   * Announced rather than marked as a live region: the verdict panel replaces
+   * the power-up row rather than updating in place, and a swapped subtree is
+   * not reliably re-read on either platform.
+   */
+  useEffect(() => {
+    if (!revealed) return;
+
+    const verdict =
+      selected === question.correct
+        ? `${t.quiz.correct(roundPoints(1))} ${t.quiz.streak(streak)}`
+        : selected === null
+          ? `${t.quiz.timeOut}. ${t.quiz.correctWas(question.answers[locale][question.correct])}`
+          : `${t.quiz.wrong}. ${t.quiz.correctWas(question.answers[locale][question.correct])}`;
+
+    AccessibilityInfo.announceForAccessibility(verdict);
+    // Only when the reveal flips; re-announcing on every render would talk
+    // over the player.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed]);
 
   const urgent = timeLeft < 2 && !revealed;
 
@@ -340,6 +368,9 @@ export default function QuizScreen() {
             }}
           />
           <View
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={t.quiz.mediaLabel(question.mediaId)}
             style={{
               height: 200,
               borderRadius: radius.soft,
