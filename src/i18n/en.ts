@@ -154,7 +154,7 @@ export const en = {
     popular: '★ POPULAR',
     bestValue: 'BEST VALUE',
     payMethod: 'Apple Pay · •••• 4821',
-    payNote: 'Default · One-tap enabled',
+    payNote: 'Default payment method',
     change: 'Change',
     recent: 'Recent activity',
     emptyTitle: 'Nothing yet',

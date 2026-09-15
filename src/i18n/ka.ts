@@ -152,7 +152,7 @@ export const ka: Strings = {
     popular: '★ პოპულარული',
     bestValue: 'საუკეთესო ფასი',
     payMethod: 'Apple Pay · •••• 4821',
-    payNote: 'ძირითადი · ერთი შეხებით',
+    payNote: 'ძირითადი გადახდის მეთოდი',
     change: 'შეცვლა',
     recent: 'ბოლო ოპერაციები',
     emptyTitle: 'ჯერ ცარიელია',
