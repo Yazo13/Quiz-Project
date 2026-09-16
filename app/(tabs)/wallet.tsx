@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Coin } from '../../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
+import { useArmed } from '../../src/hooks/useArmed';
 import { Strings, useT } from '../../src/i18n';
 import { succeeded, tapped } from '../../src/lib/feedback';
 import { group } from '../../src/lib/number';
@@ -12,9 +13,6 @@ import { relative } from '../../src/lib/time';
 import { useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
-
-/** How long an armed pack waits for its second tap. */
-const ARM_TIMEOUT = 4000;
 
 /** Tokens per US dollar, taken from the headline $9.99 / 1,200 pack. */
 const TOKENS_PER_DOLLAR = 120;
@@ -60,32 +58,18 @@ export default function WalletScreen() {
   const weekly = useWeeklyEarned();
 
   /**
-   * The pack waiting on a second tap.
-   *
-   * A single tap used to credit tokens outright, with no confirmation and no
-   * way back — which is the wrong shape for a control that will eventually
-   * charge a card. Arming first turns a misfire into a no-op, and it disarms
-   * itself so a pack cannot sit primed indefinitely.
+   * Buying takes two taps. A single one used to credit tokens outright, with
+   * no confirmation and no way back, which is the wrong shape for a control
+   * that will eventually charge a card.
    */
-  const [armed, setArmed] = useState<number | null>(null);
-  const disarm = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (disarm.current) clearTimeout(disarm.current);
-  }, []);
+  const { armed, press } = useArmed<number>();
 
   const tapPack = (amount: number) => {
-    if (disarm.current) clearTimeout(disarm.current);
-
-    if (armed !== amount) {
-      setArmed(amount);
+    if (!press(amount)) {
       tapped();
-      disarm.current = setTimeout(() => setArmed(null), ARM_TIMEOUT);
       return;
     }
-
     // Standing in for the real IAP call, which needs a development build.
-    setArmed(null);
     credit('pack', amount, group(amount));
     succeeded();
     setMode('activity');

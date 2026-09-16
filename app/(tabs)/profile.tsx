@@ -8,6 +8,7 @@ import { Avatar, Chip, DottedRule, Fire } from '../../src/components/Primitives'
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { achievements, sortForShelf } from '../../src/data/achievements';
 import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
+import { useArmed } from '../../src/hooks/useArmed';
 import { Strings, localeNames, useLocale, useSetLocale, useT } from '../../src/i18n';
 import { relative } from '../../src/lib/time';
 import { Locale, WIN_THRESHOLD, useAccuracy, useGame } from '../../src/store/game';
@@ -48,6 +49,18 @@ export default function ProfileScreen() {
   const haptics = useGame((st) => st.haptics);
   const setHaptics = useGame((st) => st.setHaptics);
   const resetProgress = useGame((s) => s.resetProgress);
+
+  /**
+   * Wiping progress is the most destructive thing in the app — tokens,
+   * rounds, streak and every earned trophy, with nothing to restore from. It
+   * fired on a single tap while buying a token pack needed two.
+   */
+  const { armed: resetArmed, press: pressReset } = useArmed<'reset'>();
+
+  const tapReset = () => {
+    if (pressReset('reset')) resetProgress();
+  };
+
   const accuracy = useAccuracy();
   const { me } = useStandings();
 
@@ -364,8 +377,19 @@ export default function ProfileScreen() {
           <Eyebrow size={11} style={{ marginBottom: 10 }}>
             {t.profile.dangerZone}
           </Eyebrow>
-          <Tactile height={48} radius={radius.sharp} onPress={resetProgress}>
-            <TactileLabel color={color.coral}>{t.profile.reset}</TactileLabel>
+          <UI size={11} color={color.ink3} style={{ marginBottom: 10 }}>
+            {t.profile.resetNote}
+          </UI>
+          <Tactile
+            height={48}
+            radius={radius.sharp}
+            background={resetArmed ? color.coral : undefined}
+            onPress={tapReset}
+            accessibilityLabel={resetArmed ? t.profile.resetConfirm : t.profile.reset}
+          >
+            <TactileLabel color={resetArmed ? color.white : color.coral}>
+              {resetArmed ? t.profile.resetConfirm : t.profile.reset}
+            </TactileLabel>
           </Tactile>
         </View>
       </ScrollView>

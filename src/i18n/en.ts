@@ -217,6 +217,8 @@ export const en = {
     defeatScreen: 'Defeat screen',
     dangerZone: 'Danger zone',
     reset: 'Reset progress',
+    resetConfirm: 'Tap again to erase everything',
+    resetNote: 'Tokens, rounds, streak and trophies. There is no undo.',
   },
 };
 
