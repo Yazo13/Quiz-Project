@@ -52,11 +52,11 @@ Rules that give it the signature look:
 
 ## Screens
 
-1. **Arena** (home) — Grand Tournament card with live countdown + prize art, category scroller that filters the battle list, glowing token balance.
-2. **Quiz** — 5-second depleting progress bar, central media box (the anti-AI question format), four tactile answer buttons with spring press, 50/50 power-up.
+1. **Arena** (home) — Grand Tournament card with a countdown that knows when it has run out, the daily bonus while it is unclaimed, a category scroller that filters the battle list, and the token balance.
+2. **Quiz** — 5-second depleting bar, the question's own media frame, four answer buttons dealt in a fresh order, a 50/50 power-up, and a way out of the round.
 3. **Leaderboard** — your rank banner, podium, and a board that reorders by today, this week, all-time or friends.
-4. **Wallet & Store** — balance hero, token pack grid, activity log built from the ledger.
-5. **Victory** / 6. **Defeat** — end states with animated trophy and cracked compass.
+4. **Wallet & Store** — balance hero, token packs that take two taps to buy, activity log built from the ledger.
+5. **Victory** / 6. **Defeat** — end states with animated trophy and cracked compass, and a share sheet on a win.
 
 A seventh screen exists that nobody should see: an error boundary, exported
 from the root layout, which catches a thrown screen instead of letting the app
@@ -64,19 +64,48 @@ go white.
 
 ## The round
 
-A round is ten questions from a bank of twenty, dealt without replacement —
-the bank used to be walked with a modulo, which meant every round asked each
-question twice and the second half was free marks.
+A round is ten questions from a bank of twenty, dealt without replacement, and
+each question's four answers are reordered as it is dealt. Both matter for the
+same reason: the bank is small enough that a regular player meets a question
+again, and answering from a remembered position is not answering the question.
 
 Five seconds per question, and the clock is wall-clock rather than a
 countdown, so leaving the app does not pause it. Backgrounding the app to think
 was the one hole worth closing in a game whose whole premise is the time limit.
 
+Leaving a round early banks what was answered rather than discarding it, and
+records the round against the questions actually seen. Throwing the score away
+would make quitting the right move whenever a streak looked at risk.
+
+Every question carries its own media frame, derived from its media id — the
+caption announces an ID, so the picture behind it has to differ.
+
+## What the player keeps
+
+Finishing rounds earns the trophy shelf — seven achievements, each a test
+against stored progress rather than a line of copy. Locked ones stay visible
+with what they take and how far along you are. The last five rounds are listed
+underneath with score, streak and what they paid.
+
+A daily bonus pays once per local calendar day, not once per twenty-four
+hours: claiming at 23:00 and again at 00:30 is two days to the player, and an
+elapsed-time rule would refuse that while allowing two claims in an afternoon.
+
 ## Accessibility
 
 Controls carry roles, labels, and selected and disabled state. Icon-only ones
 are labelled; the tab glyphs are hidden from the tree because they repeat the
-label directly beneath them.
+label directly beneath them. The quiz verdict is announced when it appears,
+including what the right answer was — the green highlight that shows it is
+exactly as invisible as the rest.
+
+Vibration is on by default because the press feel is part of the design, and
+switchable off in the profile tab. Android apps can fire haptics regardless of
+the OS setting, so the switch has to live here.
+
+Anything destructive or costly takes two presses — buying a pack, wiping
+progress. The button says what the second press will do and forgets after four
+seconds.
 
 The design animates constantly — the mesh field, the balance halo, the live
 dot, the streak flame, the end-state confetti. All of it stands down when the
@@ -114,9 +143,11 @@ npm run typecheck
 npm test
 ```
 
-The suites cover the token economy and number formatting — the parts with rules
-rather than layout. They run under `node --test` with type stripping, no test
-framework installed.
+Sixty-seven cases covering the parts with rules rather than layout: the token
+economy, the question bank and its shuffling, achievement boundaries, the
+rival roster, number formatting, the clock formatter, and a parity suite that
+checks the two locale tables against each other. They run under `node --test`
+with type stripping, no test framework installed.
 
 ## State
 
