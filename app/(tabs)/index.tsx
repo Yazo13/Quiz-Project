@@ -19,12 +19,16 @@ import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tact
 import { TokenBalance } from '../../src/components/TokenBalance';
 import { formatHMS, useCountdown } from '../../src/hooks/useCountdown';
 import { useT } from '../../src/i18n';
+import { presenceAt, seedFor, usePresenceClock } from '../../src/data/presence';
 import { DAILY_TOKENS, ENTRY_COST, dailyAvailable, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
 /** The one tournament the arena currently features. */
 const GRAND_ID = 'grand-tsinandali';
+
+/** Baseline for the arena-wide figure; the rest drift around their own. */
+const LIVE_BASE = 12408;
 
 const categories = [
   { id: 'travel', glyph: '✈', tint: color.coralSoft, prizes: 12 },
@@ -53,6 +57,9 @@ export default function ArenaScreen() {
   const t = useT();
 
   const shown = category ? battles.filter((b) => b.category === category) : battles;
+
+  // Simulated until there is a presence endpoint — see src/data/presence.ts.
+  const now = usePresenceClock();
 
   const tokens = useGame((s) => s.tokens);
   const joined = useGame((s) => s.joined.includes(GRAND_ID));
@@ -160,7 +167,7 @@ export default function ArenaScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, paddingTop: 6 }}>
             <LiveDot size={8} />
             <Eyebrow size={11} color={color.coral}>
-              {t.arena.live(12408)}
+              {t.arena.live(presenceAt(LIVE_BASE, 0, now))}
             </Eyebrow>
           </View>
         </View>
@@ -425,7 +432,9 @@ export default function ArenaScreen() {
               <Pressable
                 key={b.key}
                 accessibilityRole="button"
-                accessibilityLabel={`${t.arena.battles[b.key]} · ${t.arena.playing(b.players)}`}
+                accessibilityLabel={`${t.arena.battles[b.key]} · ${t.arena.playing(
+                  presenceAt(b.players, seedFor(b.key), now),
+                )}`}
                 onPress={() => enterBattle(t.arena.battles[b.key])}
               >
                 <View
@@ -461,7 +470,7 @@ export default function ArenaScreen() {
                     </UI>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
                       <UI size={11} weight="semibold" color={color.ink3}>
-                        {t.arena.playing(b.players)}
+                        {t.arena.playing(presenceAt(b.players, seedFor(b.key), now))}
                       </UI>
                       {b.hot && <Fire size={12} />}
                     </View>
