@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Coin } from '../../src/components/Primitives';
+import { Segmented } from '../../src/components/Segmented';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { useArmed } from '../../src/hooks/useArmed';
 import { Strings, useT } from '../../src/i18n';
@@ -185,39 +186,17 @@ export default function WalletScreen() {
 
         {/* Segmented control */}
         <View style={{ paddingHorizontal: screenPad, paddingTop: 16 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              borderWidth: border.medium,
-              borderColor: color.lineStrong,
-              backgroundColor: color.surface,
-              overflow: 'hidden',
-            }}
-          >
-            {(['store', 'activity'] as const).map((m) => {
-              const active = mode === m;
-              return (
-                <Pressable
-                  key={m}
-                  accessibilityRole="button"
-                  accessibilityLabel={m === 'store' ? t.wallet.store : t.wallet.activity}
-                  accessibilityState={{ selected: active }}
-                  onPress={() => setMode(m)}
-                  style={{
-                    flex: 1,
-                    height: 42,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: active ? color.ink : 'transparent',
-                  }}
-                >
-                  <UI size={12} weight="bold" color={active ? color.white : color.ink}>
-                    {m === 'store' ? t.wallet.store : t.wallet.activity}
-                  </UI>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Segmented
+            height={42}
+            size={12}
+            activeColor={color.white}
+            selected={mode}
+            onChange={setMode}
+            options={[
+              { value: 'store' as const, label: t.wallet.store },
+              { value: 'activity' as const, label: t.wallet.activity },
+            ]}
+          />
         </View>
 
         {mode === 'store' ? (

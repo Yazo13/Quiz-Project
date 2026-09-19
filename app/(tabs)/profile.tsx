@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, DottedRule, Fire } from '../../src/components/Primitives';
+import { Segmented } from '../../src/components/Segmented';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { achievements, sortForShelf } from '../../src/data/achievements';
 import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
@@ -274,39 +275,14 @@ export default function ProfileScreen() {
           <Eyebrow size={11} style={{ marginBottom: 10 }}>
             {t.profile.language}
           </Eyebrow>
-          <View
-            style={{
-              flexDirection: 'row',
-              borderWidth: border.medium,
-              borderColor: color.lineStrong,
-              backgroundColor: color.surface,
-              overflow: 'hidden',
-            }}
-          >
-            {(Object.keys(localeNames) as Locale[]).map((code) => {
-              const active = locale === code;
-              return (
-                <Pressable
-                  key={code}
-                  accessibilityRole="button"
-                  accessibilityLabel={localeNames[code]}
-                  accessibilityState={{ selected: active }}
-                  onPress={() => setLocale(code)}
-                  style={{
-                    flex: 1,
-                    height: 46,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: active ? color.ink : 'transparent',
-                  }}
-                >
-                  <UI size={14} weight="bold" color={active ? color.gold : color.ink}>
-                    {localeNames[code]}
-                  </UI>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Segmented
+            selected={locale}
+            onChange={setLocale}
+            options={(Object.keys(localeNames) as Locale[]).map((code) => ({
+              value: code,
+              label: localeNames[code],
+            }))}
+          />
         </View>
 
         {/* Vibration — the design leans on the press feel, so this is on by
@@ -315,40 +291,14 @@ export default function ProfileScreen() {
           <Eyebrow size={11} style={{ marginBottom: 10 }}>
             {t.profile.haptics}
           </Eyebrow>
-          <View
-            style={{
-              flexDirection: 'row',
-              borderWidth: border.medium,
-              borderColor: color.lineStrong,
-              backgroundColor: color.surface,
-              overflow: 'hidden',
-            }}
-          >
-            {[true, false].map((on) => {
-              const active = haptics === on;
-              const label = on ? t.profile.hapticsOn : t.profile.hapticsOff;
-              return (
-                <Pressable
-                  key={String(on)}
-                  accessibilityRole="button"
-                  accessibilityLabel={label}
-                  accessibilityState={{ selected: active }}
-                  onPress={() => setHaptics(on)}
-                  style={{
-                    flex: 1,
-                    height: 46,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: active ? color.ink : 'transparent',
-                  }}
-                >
-                  <UI size={14} weight="bold" color={active ? color.gold : color.ink}>
-                    {label}
-                  </UI>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Segmented
+            selected={haptics}
+            onChange={setHaptics}
+            options={[
+              { value: true, label: t.profile.hapticsOn },
+              { value: false, label: t.profile.hapticsOff },
+            ]}
+          />
         </View>
 
         <View style={{ paddingHorizontal: screenPad, paddingTop: 24, gap: 10 }}>
