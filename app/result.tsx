@@ -12,7 +12,7 @@ import { Tactile, TactileLabel, TactileSurface } from '../src/components/Tactile
 import { ROUND_LENGTH } from '../src/data/questions';
 import { useReducedMotion } from '../src/hooks/useReducedMotion';
 import { useT } from '../src/i18n';
-import { ENTRY_COST, WIN_THRESHOLD, useGame } from '../src/store/game';
+import { ENTRY_COST, didWin, useGame } from '../src/store/game';
 import { color, radius, screenPad } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
 
@@ -30,7 +30,7 @@ export default function ResultScreen() {
   // A real round arrives by id. The profile's two preview buttons pass an
   // outcome instead, so the screen can be seen without playing.
   const round = params.round ? rounds.find((r) => r.id === params.round) : undefined;
-  const won = round ? round.correct >= WIN_THRESHOLD : params.outcome !== 'loss';
+  const won = round ? didWin(round.correct, round.total) : params.outcome !== 'loss';
 
   const correct = round?.correct ?? (won ? 9 : 4);
   const total = round?.total ?? ROUND_LENGTH;

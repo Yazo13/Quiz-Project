@@ -6,7 +6,9 @@ import {
   dailyAvailable,
   ENTRY_COST,
   POWERUP_COST,
-  WIN_THRESHOLD,
+  didWin,
+  MIN_WIN_LENGTH,
+  WIN_SHARE,
   roundPoints,
   roundTokens,
   useGame,
@@ -71,7 +73,7 @@ describe('finishing a round', () => {
     const result = state().finishRound({ correct: 9, total: 10, bestStreak: 7, avgMs: 4200 });
 
     assert.equal(result.points, roundPoints(9));
-    assert.equal(result.earned, roundTokens(9, 7));
+    assert.equal(result.earned, roundTokens(9, 10, 7));
     assert.equal(state().tokens, START_TOKENS + result.earned);
     assert.equal(state().points, START_POINTS + result.points);
     assert.equal(state().ledger[0].kind, 'reward');
@@ -86,8 +88,31 @@ describe('finishing a round', () => {
   });
 
   it('treats the threshold itself as a win', () => {
-    assert.ok(roundTokens(WIN_THRESHOLD, 0) > 15);
-    assert.equal(roundTokens(WIN_THRESHOLD - 1, 9), 15, 'a long streak cannot rescue a loss');
+    assert.ok(roundTokens(6, 10, 0) > 15);
+    assert.equal(roundTokens(5, 10, 9), 15, 'a long streak cannot rescue a loss');
+  });
+
+  it('judges a shortened round on its own length', () => {
+    // Five right out of seven beats the bar; under the old flat six it was a
+    // loss purely because the round was cut short.
+    assert.ok(didWin(5, 7));
+    assert.ok(roundTokens(5, 7, 0) > 15);
+  });
+
+  it('will not call a handful of questions a win', () => {
+    assert.equal(didWin(1, 1), false, 'one right answer is not a round');
+    assert.equal(didWin(4, 4), false);
+    assert.equal(didWin(MIN_WIN_LENGTH, MIN_WIN_LENGTH), true);
+  });
+
+  it('measures the share, not the count', () => {
+    assert.equal(didWin(6, 10), true);
+    assert.equal(didWin(6, 11), false, '6 of 11 is below the share');
+    assert.equal(WIN_SHARE, 0.6);
+  });
+
+  it('never wins an empty round', () => {
+    assert.equal(didWin(0, 0), false);
   });
 
   it('carries the round peak forward as the new streak', () => {

@@ -12,7 +12,7 @@ import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/stand
 import { useArmed } from '../../src/hooks/useArmed';
 import { Strings, localeNames, useLocale, useSetLocale, useT } from '../../src/i18n';
 import { relative } from '../../src/lib/time';
-import { Locale, WIN_THRESHOLD, useAccuracy, useGame } from '../../src/store/game';
+import { Locale, didWin, useAccuracy, useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
@@ -216,7 +216,7 @@ export default function ProfileScreen() {
               </View>
             ) : (
               recent.map((r, i) => {
-                const won = r.correct >= WIN_THRESHOLD;
+                const won = didWin(r.correct, r.total);
                 return (
                   <View
                     key={r.id}

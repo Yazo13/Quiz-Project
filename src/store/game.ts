@@ -50,8 +50,29 @@ export interface RoundResult {
 const STARTING_TOKENS = 1248;
 const STARTING_POINTS = 6422;
 
-/** Correct answers at or above this win the round. */
-export const WIN_THRESHOLD = 6;
+/**
+ * Share of a round that has to be right to win it.
+ *
+ * It used to be a flat six correct, which assumed every round was ten
+ * questions long. Since leaving early became possible, rounds can be any
+ * length — and a seven-question round answered five right, which is better
+ * than the bar, was still recorded as a loss because five is less than six.
+ */
+export const WIN_SHARE = 0.6;
+/**
+ * Rounds shorter than this are recorded but never count as wins.
+ *
+ * Without a floor, quitting after one correct answer would be a perfect score
+ * and pay a win — entry fee back plus the streak kicker, for one question.
+ */
+export const MIN_WIN_LENGTH = 5;
+
+/** Whether a round of this length and score counts as won. */
+export function didWin(correct: number, total: number): boolean {
+  if (total < MIN_WIN_LENGTH) return false;
+  return correct / total >= WIN_SHARE;
+}
+
 /** Cost of one tournament seat, and of a retry after losing. */
 export const ENTRY_COST = 50;
 /** Cost of the 50/50 power-up inside a round. */
@@ -80,8 +101,8 @@ export function roundPoints(correct: number) {
   return correct * POINTS_PER_CORRECT;
 }
 
-export function roundTokens(correct: number, bestStreak: number) {
-  return correct >= WIN_THRESHOLD
+export function roundTokens(correct: number, total: number, bestStreak: number) {
+  return didWin(correct, total)
     ? correct * TOKENS_PER_CORRECT + bestStreak * TOKENS_PER_STREAK
     : CONSOLATION_TOKENS;
 }
@@ -217,9 +238,9 @@ export const useGame = create<GameState>()(
       },
 
       finishRound: ({ correct, total, bestStreak, avgMs }) => {
-        const won = correct >= WIN_THRESHOLD;
+        const won = didWin(correct, total);
         const points = roundPoints(correct);
-        const earned = roundTokens(correct, bestStreak);
+        const earned = roundTokens(correct, total, bestStreak);
         const result: RoundResult = {
           id: nextId(),
           at: Date.now(),

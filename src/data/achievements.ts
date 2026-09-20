@@ -1,4 +1,4 @@
-import { WIN_THRESHOLD, type RoundResult } from '../store/game.ts';
+import { didWin, type RoundResult } from '../store/game.ts';
 
 /**
  * The trophy shelf, earned rather than written down.
@@ -49,14 +49,14 @@ const QUICK_MS = 2500;
 
 export function achievements({ rounds, tokens }: Progress): Achievement[] {
   const first = earliest(rounds, () => true);
-  const win = earliest(rounds, (r) => r.correct >= WIN_THRESHOLD);
+  const win = earliest(rounds, (r) => didWin(r.correct, r.total));
   const perfect = earliest(rounds, (r) => r.total > 0 && r.correct === r.total);
   const streak = earliest(rounds, (r) => r.bestStreak >= 10);
   // A quick round only counts if it was a win; racing through wrong answers
   // is not the skill being rewarded.
   const quick = earliest(
     rounds,
-    (r) => r.avgMs > 0 && r.avgMs < QUICK_MS && r.correct >= WIN_THRESHOLD,
+    (r) => r.avgMs > 0 && r.avgMs < QUICK_MS && didWin(r.correct, r.total),
   );
 
   const bestStreak = rounds.reduce((m, r) => Math.max(m, r.bestStreak), 0);
