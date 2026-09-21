@@ -14,6 +14,10 @@ import type { Locale } from '../store/game';
  * replacement, and a round that repeats a question hands the player the answer
  * the second time around.
  *
+ * Every category must clear that bar on its own, not just the bank as a whole.
+ * The arena offers four of them as a choice, and a category that cannot fill a
+ * round is a choice that leads somewhere shorter and poorer than the others.
+ *
  * Prompts and answers carry both languages inline rather than living in the
  * string tables: they are content, and a server will return them the same way
  * — one row, every locale it has.
@@ -317,6 +321,286 @@ export const questions: Question[] = [
     },
     correct: 0,
     mediaId: '4840',
+  },
+  {
+    id: 21,
+    category: 'travel',
+    prompt: {
+      en: 'Which region holds Georgia’s highest inhabited villages?',
+      ka: 'რომელ მხარეშია საქართველოს ყველაზე მაღალმთიანი დასახლებები?',
+    },
+    answers: {
+      en: ['Kakheti', 'Svaneti', 'Imereti', 'Guria'],
+      ka: ['კახეთი', 'სვანეთი', 'იმერეთი', 'გურია'],
+    },
+    correct: 1,
+    mediaId: '4841',
+  },
+  {
+    id: 22,
+    category: 'travel',
+    prompt: {
+      en: 'Which river runs through Tbilisi?',
+      ka: 'რომელი მდინარე მიედინება თბილისში?',
+    },
+    answers: {
+      en: ['Rioni', 'Alazani', 'Mtkvari', 'Enguri'],
+      ka: ['რიონი', 'ალაზანი', 'მტკვარი', 'ენგური'],
+    },
+    correct: 2,
+    mediaId: '4842',
+  },
+  {
+    id: 23,
+    category: 'culture',
+    prompt: {
+      en: 'Who wrote The Knight in the Panther’s Skin?',
+      ka: 'ვინ დაწერა „ვეფხისტყაოსანი“?',
+    },
+    answers: {
+      en: ['Shota Rustaveli', 'Vazha-Pshavela', 'Galaktion Tabidze', 'Ilia Chavchavadze'],
+      ka: ['შოთა რუსთაველი', 'ვაჟა-ფშაველა', 'გალაკტიონ ტაბიძე', 'ილია ჭავჭავაძე'],
+    },
+    correct: 0,
+    mediaId: '4843',
+  },
+  {
+    id: 24,
+    category: 'culture',
+    prompt: {
+      en: 'Who leads a Georgian feast?',
+      ka: 'ვინ უძღვება ქართულ სუფრას?',
+    },
+    answers: {
+      en: ['The eldest guest', 'The cook', 'The host’s neighbour', 'The tamada'],
+      ka: ['უხუცესი სტუმარი', 'მზარეული', 'მასპინძლის მეზობელი', 'თამადა'],
+    },
+    correct: 3,
+    mediaId: '4844',
+  },
+  {
+    id: 25,
+    category: 'culture',
+    prompt: {
+      en: 'Which Georgian script was used for religious manuscripts?',
+      ka: 'ქართული დამწერლობის რომელი სახეობით იწერებოდა სასულიერო ხელნაწერები?',
+    },
+    answers: {
+      en: ['Mkhedruli', 'Nuskhuri', 'Latin', 'Cyrillic'],
+      ka: ['მხედრული', 'ნუსხური', 'ლათინური', 'კირილიცა'],
+    },
+    correct: 1,
+    mediaId: '4845',
+  },
+  {
+    id: 26,
+    category: 'tech',
+    prompt: {
+      en: 'Which company develops Android?',
+      ka: 'რომელი კომპანია ავითარებს Android-ს?',
+    },
+    answers: {
+      en: ['Apple', 'Google', 'Meta', 'Samsung'],
+      ka: ['Apple', 'Google', 'Meta', 'Samsung'],
+    },
+    correct: 1,
+    mediaId: '4846',
+  },
+  {
+    id: 27,
+    category: 'tech',
+    prompt: {
+      en: 'What does a VPN mainly give you?',
+      ka: 'რას გაძლევს VPN უპირველესად?',
+    },
+    answers: {
+      en: ['More storage', 'Faster charging', 'An encrypted tunnel', 'A louder speaker'],
+      ka: ['მეტ მეხსიერებას', 'სწრაფ დამუხტვას', 'დაშიფრულ არხს', 'ხმამაღალ დინამიკს'],
+    },
+    correct: 2,
+    mediaId: '4847',
+  },
+  {
+    id: 28,
+    category: 'tech',
+    prompt: {
+      en: 'Which of these is a version control system?',
+      ka: 'რომელია ვერსიების კონტროლის სისტემა?',
+    },
+    answers: {
+      en: ['Nginx', 'Redis', 'Docker', 'Git'],
+      ka: ['Nginx', 'Redis', 'Docker', 'Git'],
+    },
+    correct: 3,
+    mediaId: '4848',
+  },
+  {
+    id: 29,
+    category: 'tech',
+    prompt: {
+      en: 'How many bits are in a byte?',
+      ka: 'რამდენი ბიტია ერთ ბაიტში?',
+    },
+    answers: {
+      en: ['4', '8', '16', '32'],
+      ka: ['4', '8', '16', '32'],
+    },
+    correct: 1,
+    mediaId: '4849',
+  },
+  {
+    id: 30,
+    category: 'tech',
+    prompt: {
+      en: 'Which language is TypeScript built on?',
+      ka: 'რომელ ენაზეა TypeScript აგებული?',
+    },
+    answers: {
+      en: ['Java', 'Python', 'JavaScript', 'C#'],
+      ka: ['Java', 'Python', 'JavaScript', 'C#'],
+    },
+    correct: 2,
+    mediaId: '4850',
+  },
+  {
+    id: 31,
+    category: 'tech',
+    prompt: {
+      en: 'What is "the cloud", in plain terms?',
+      ka: 'რა არის „ღრუბელი“ მარტივად რომ ვთქვათ?',
+    },
+    answers: {
+      en: ['Someone else’s computers', 'Satellites', 'A wireless signal', 'A weather system'],
+      ka: ['სხვისი კომპიუტერები', 'თანამგზავრები', 'უსადენო სიგნალი', 'ამინდის სისტემა'],
+    },
+    correct: 0,
+    mediaId: '4851',
+  },
+  {
+    id: 32,
+    category: 'experience',
+    prompt: {
+      en: 'Which Georgian resort is known for skiing?',
+      ka: 'რომელი ქართული კურორტია თხილამურებით ცნობილი?',
+    },
+    answers: {
+      en: ['Sighnaghi', 'Gudauri', 'Mtskheta', 'Poti'],
+      ka: ['სიღნაღი', 'გუდაური', 'მცხეთა', 'ფოთი'],
+    },
+    correct: 1,
+    mediaId: '4852',
+  },
+  {
+    id: 33,
+    category: 'experience',
+    prompt: {
+      en: 'What is a supra?',
+      ka: 'რა არის სუფრა?',
+    },
+    answers: {
+      en: ['A mountain pass', 'A type of bread', 'A folk instrument', 'A feast with a toastmaster'],
+      ka: ['მთის უღელტეხილი', 'პურის სახეობა', 'ხალხური საკრავი', 'ნადიმი თამადით'],
+    },
+    correct: 3,
+    mediaId: '4853',
+  },
+  {
+    id: 34,
+    category: 'experience',
+    prompt: {
+      en: 'What kind of instrument is the panduri?',
+      ka: 'როგორი საკრავია ფანდური?',
+    },
+    answers: {
+      en: ['A three-string lute', 'A drum', 'A flute', 'A horn'],
+      ka: ['სამსიმიანი საკრავი', 'დასარტყამი', 'სასულე', 'რქა'],
+    },
+    correct: 0,
+    mediaId: '4854',
+  },
+  {
+    id: 35,
+    category: 'experience',
+    prompt: {
+      en: 'Which word is the Georgian toast?',
+      ka: 'რომელი სიტყვაა ქართული სადღეგრძელო?',
+    },
+    answers: {
+      en: ['Gamarjoba', 'Nakhvamdis', 'Gaumarjos', 'Madloba'],
+      ka: ['გამარჯობა', 'ნახვამდის', 'გაუმარჯოს', 'მადლობა'],
+    },
+    correct: 2,
+    mediaId: '4855',
+  },
+  {
+    id: 36,
+    category: 'experience',
+    prompt: {
+      en: 'Which Black Sea city has the famous botanical garden?',
+      ka: 'შავი ზღვის რომელ ქალაქშია ცნობილი ბოტანიკური ბაღი?',
+    },
+    answers: {
+      en: ['Batumi', 'Poti', 'Anaklia', 'Kobuleti'],
+      ka: ['ბათუმი', 'ფოთი', 'ანაკლია', 'ქობულეთი'],
+    },
+    correct: 0,
+    mediaId: '4856',
+  },
+  {
+    id: 37,
+    category: 'experience',
+    prompt: {
+      en: 'What is a marani?',
+      ka: 'რა არის მარანი?',
+    },
+    answers: {
+      en: ['A bell tower', 'A wine cellar', 'A bridge', 'A market'],
+      ka: ['სამრეკლო', 'ღვინის სარდაფი', 'ხიდი', 'ბაზარი'],
+    },
+    correct: 1,
+    mediaId: '4857',
+  },
+  {
+    id: 38,
+    category: 'experience',
+    prompt: {
+      en: 'Which fortress looks over old Tbilisi?',
+      ka: 'რომელი ციხე დგას ძველ თბილისს ზემოთ?',
+    },
+    answers: {
+      en: ['Narikala', 'Rabati', 'Ananuri', 'Khertvisi'],
+      ka: ['ნარიყალა', 'რაბათი', 'ანანური', 'ხერთვისი'],
+    },
+    correct: 0,
+    mediaId: '4858',
+  },
+  {
+    id: 39,
+    category: 'experience',
+    prompt: {
+      en: 'Which of these is a stew?',
+      ka: 'რომელია ამათგან მოხარშული კერძი?',
+    },
+    answers: {
+      en: ['Khinkali', 'Churchkhela', 'Chakapuli', 'Pkhali'],
+      ka: ['ხინკალი', 'ჩურჩხელა', 'ჩაქაფული', 'ფხალი'],
+    },
+    correct: 2,
+    mediaId: '4859',
+  },
+  {
+    id: 40,
+    category: 'experience',
+    prompt: {
+      en: 'In which season is rtveli?',
+      ka: 'წელიწადის რომელ დროსაა რთველი?',
+    },
+    answers: {
+      en: ['Spring', 'Summer', 'Winter', 'Autumn'],
+      ka: ['გაზაფხული', 'ზაფხული', 'ზამთარი', 'შემოდგომა'],
+    },
+    correct: 3,
+    mediaId: '4860',
   },
 ];
 

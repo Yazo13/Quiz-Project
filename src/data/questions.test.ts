@@ -11,6 +11,28 @@ describe('the question bank', () => {
     );
   });
 
+  it('lets every category field a full round on its own', () => {
+    const counts = new Map<string, number>();
+    for (const q of questions) counts.set(q.category, (counts.get(q.category) ?? 0) + 1);
+
+    for (const [category, count] of counts) {
+      assert.ok(
+        count >= ROUND_LENGTH,
+        `${category} has ${count}, a round needs ${ROUND_LENGTH}`,
+      );
+    }
+  });
+
+  it('covers every category the arena offers', () => {
+    const offered = ['travel', 'tech', 'cash', 'experience'];
+    const present = new Set(questions.map((q) => q.category));
+    // `cash` is a prize type rather than a subject, so it is deliberately not
+    // a question category — the rest must be there.
+    for (const category of offered.filter((c) => c !== 'cash')) {
+      assert.ok(present.has(category as never), `no questions for ${category}`);
+    }
+  });
+
   it('gives every question a unique id and media id', () => {
     assert.equal(new Set(questions.map((q) => q.id)).size, questions.length);
     assert.equal(new Set(questions.map((q) => q.mediaId)).size, questions.length);
