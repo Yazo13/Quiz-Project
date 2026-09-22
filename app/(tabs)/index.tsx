@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -37,14 +37,26 @@ const categories = [
   { id: 'experience', glyph: '★', tint: color.sky, prizes: 5 },
 ] as const;
 
+/**
+ * `category` is the prize on offer, which is what the scroller filters by.
+ * `subject` is what the round actually asks about — a separate thing, and
+ * absent on the cash battles, which pay out in tokens rather than belonging
+ * to a topic. Those play the whole bank.
+ */
 const battles = [
-  { key: 'geography', category: 'travel', players: 1284, prize: '50K', hot: true },
-  { key: 'tech', category: 'tech', players: 642, prize: '20K', hot: false },
-  { key: 'culture', category: 'experience', players: 2103, prize: '100K', hot: true },
-  { key: 'cellar', category: 'travel', players: 418, prize: '15K', hot: false },
+  { key: 'geography', category: 'travel', subject: 'travel', players: 1284, prize: '50K', hot: true },
+  { key: 'tech', category: 'tech', subject: 'tech', players: 642, prize: '20K', hot: false },
+  { key: 'culture', category: 'experience', subject: 'experience', players: 2103, prize: '100K', hot: true },
+  { key: 'cellar', category: 'travel', subject: 'culture', players: 418, prize: '15K', hot: false },
   { key: 'jackpot', category: 'cash', players: 3960, prize: '250K', hot: true },
   { key: 'nightOwl', category: 'cash', players: 704, prize: '40K', hot: false },
 ] as const;
+
+type Battle = (typeof battles)[number];
+
+/** Only battles with a subject narrow the round; the rest play everything. */
+const quizHref = (battle: Battle): Href =>
+  'subject' in battle ? `/quiz?subject=${battle.subject}` : '/quiz';
 
 export default function ArenaScreen() {
   const router = useRouter();
@@ -88,12 +100,12 @@ export default function ArenaScreen() {
     setShort(true);
   };
 
-  const enterBattle = (title: string) => {
-    if (!spend('entry', ENTRY_COST, title)) {
+  const enterBattle = (battle: Battle) => {
+    if (!spend('entry', ENTRY_COST, t.arena.battles[battle.key])) {
       setShort(true);
       return;
     }
-    router.push('/quiz');
+    router.push(quizHref(battle));
   };
 
   const seatLabel = started
@@ -435,7 +447,7 @@ export default function ArenaScreen() {
                 accessibilityLabel={`${t.arena.battles[b.key]} · ${t.arena.playing(
                   presenceAt(b.players, seedFor(b.key), now),
                 )}`}
-                onPress={() => enterBattle(t.arena.battles[b.key])}
+                onPress={() => enterBattle(b)}
               >
                 <View
                   style={{

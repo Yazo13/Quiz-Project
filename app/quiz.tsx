@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, AppState, Pressable, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -16,7 +16,7 @@ import { QuestionScene } from '../src/components/QuestionScene';
 import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
-import { TIME_LIMIT, buildRound } from '../src/data/questions';
+import { TIME_LIMIT, asCategory, bankFor, buildRound } from '../src/data/questions';
 import { useLocale, useT } from '../src/i18n';
 import { failed, succeeded, tapped, warned } from '../src/lib/feedback';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
@@ -56,8 +56,12 @@ export default function QuizScreen() {
   const bestStreak = useRef(useGame.getState().streak);
   const times = useRef<number[]>([]);
 
+  // The arena says what this round is about; an unknown or absent value plays
+  // the whole bank. Narrowed rather than trusted — it arrives as a URL string.
+  const { subject } = useLocalSearchParams<{ subject?: string }>();
+
   // Drawn once per mount, so re-renders cannot reshuffle the round underfoot.
-  const [round] = useState(buildRound);
+  const [round] = useState(() => buildRound(undefined, bankFor(asCategory(subject))));
   const question = round[index];
 
   // The bar is driven by Reanimated so the depletion stays smooth on the UI

@@ -604,6 +604,25 @@ export const questions: Question[] = [
   },
 ];
 
+/** The categories questions are actually written for. */
+export const CATEGORY_KEYS: CategoryKey[] = ['travel', 'culture', 'tech', 'experience'];
+
+/** Narrows an unknown string — a route parameter, say — to a real category. */
+export function asCategory(value: unknown): CategoryKey | undefined {
+  return CATEGORY_KEYS.find((key) => key === value);
+}
+
+/**
+ * The questions a round may draw from.
+ *
+ * Without a subject the whole bank is in play. With one, only that category —
+ * which is why every category has to be able to fill a round on its own.
+ */
+export function bankFor(subject?: CategoryKey): Question[] {
+  if (!subject) return questions;
+  return questions.filter((q) => q.category === subject);
+}
+
 /** Fisher-Yates, in place. */
 function shuffle<T>(items: T[]): T[] {
   for (let i = items.length - 1; i > 0; i--) {

@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ROUND_LENGTH, buildRound, questions, shuffleAnswers } from './questions.ts';
+import {
+  CATEGORY_KEYS,
+  ROUND_LENGTH,
+  asCategory,
+  bankFor,
+  buildRound,
+  questions,
+  shuffleAnswers,
+} from './questions.ts';
 
 describe('the question bank', () => {
   it('holds at least a full round, or rounds would repeat', () => {
@@ -103,6 +111,49 @@ describe('buildRound', () => {
       if (dealt && dealt.answers.en.join() !== original) moved = true;
     }
     assert.ok(moved, 'a fixed position is memorable across rounds');
+  });
+});
+
+describe('bankFor', () => {
+  it('plays the whole bank when no subject is given', () => {
+    assert.equal(bankFor().length, questions.length);
+    assert.equal(bankFor(undefined).length, questions.length);
+  });
+
+  it('narrows to one subject, and only that subject', () => {
+    for (const key of CATEGORY_KEYS) {
+      const bank = bankFor(key);
+      assert.ok(bank.length > 0, `${key} is empty`);
+      assert.ok(bank.every((q) => q.category === key), `${key} leaked another subject`);
+    }
+  });
+
+  it('still fills a full round after narrowing', () => {
+    for (const key of CATEGORY_KEYS) {
+      const round = buildRound(ROUND_LENGTH, bankFor(key));
+      assert.equal(round.length, ROUND_LENGTH, `${key} came up short`);
+      assert.ok(round.every((q) => q.category === key));
+    }
+  });
+});
+
+describe('asCategory', () => {
+  it('accepts the real ones', () => {
+    for (const key of CATEGORY_KEYS) assert.equal(asCategory(key), key);
+  });
+
+  it('rejects anything else, since it arrives from a URL', () => {
+    // `cash` is a prize type and has no questions — the important refusal.
+    assert.equal(asCategory('cash'), undefined);
+    assert.equal(asCategory(''), undefined);
+    assert.equal(asCategory('Travel'), undefined);
+    assert.equal(asCategory(undefined), undefined);
+    assert.equal(asCategory(42), undefined);
+    assert.equal(asCategory(['travel']), undefined);
+  });
+
+  it('falls back to the whole bank when it refuses', () => {
+    assert.equal(bankFor(asCategory('cash')).length, questions.length);
   });
 });
 
