@@ -17,18 +17,19 @@ import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
 import { TIME_LIMIT, asCategory, bankFor, buildRound } from '../src/data/questions';
+import { rivals } from '../src/data/rivals';
 import { useLocale, useT } from '../src/i18n';
 import { failed, succeeded, tapped, warned } from '../src/lib/feedback';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
 
-const opponents = [
-  { initials: 'NK', tint: '#FF4D2E' },
-  { initials: 'AS', tint: '#144132' },
-  { initials: 'GL', tint: '#F0B23E' },
-  { initials: 'TM', tint: '#5A3540' },
-];
+/**
+ * The faces on the "playing now" row. Taken from the roster the leaderboard
+ * uses, so the people you are told you are up against are people you can
+ * actually find on the board afterwards.
+ */
+const opponents = rivals.slice(0, 4);
 
 export default function QuizScreen() {
   const router = useRouter();
