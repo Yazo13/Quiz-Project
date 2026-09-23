@@ -20,6 +20,7 @@ import { TokenBalance } from '../../src/components/TokenBalance';
 import { formatHMS, useCountdown } from '../../src/hooks/useCountdown';
 import { useT } from '../../src/i18n';
 import { presenceAt, seedFor, usePresenceClock } from '../../src/data/presence';
+import { PLAYER_INITIALS, PLAYER_NAME } from '../../src/data/rivals';
 import { DAILY_TOKENS, ENTRY_COST, dailyAvailable, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
@@ -134,11 +135,11 @@ export default function ArenaScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Avatar initials="DG" background={color.coral} size={40} />
+            <Avatar initials={PLAYER_INITIALS} background={color.coral} size={40} />
             <View>
               <Eyebrow size={11}>{t.arena.role}</Eyebrow>
               <UI size={16} weight="bold">
-                Davit G.
+                {PLAYER_NAME}
               </UI>
             </View>
           </View>
