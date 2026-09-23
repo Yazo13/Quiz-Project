@@ -301,25 +301,30 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <View style={{ paddingHorizontal: screenPad, paddingTop: 24, gap: 10 }}>
-          <Eyebrow size={11}>{t.profile.previewEndStates}</Eyebrow>
-          <Tactile
-            variant="coral"
-            height={52}
-            radius={radius.sharp}
-            onPress={() => router.push('/result?outcome=win')}
-          >
-            <TactileLabel color={color.white}>{t.profile.victoryScreen}</TactileLabel>
-          </Tactile>
-          <Tactile
-            variant="paper"
-            height={52}
-            radius={radius.soft}
-            onPress={() => router.push('/result?outcome=loss')}
-          >
-            <TactileLabel color={color.ink}>{t.profile.defeatScreen}</TactileLabel>
-          </Tactile>
-        </View>
+        {/* Shortcuts for reviewing the end states without finishing a round.
+            Development only — a player has no use for a button that fakes a
+            victory, and the numbers it shows are invented. */}
+        {__DEV__ && (
+          <View style={{ paddingHorizontal: screenPad, paddingTop: 24, gap: 10 }}>
+            <Eyebrow size={11}>{t.profile.previewEndStates}</Eyebrow>
+            <Tactile
+              variant="coral"
+              height={52}
+              radius={radius.sharp}
+              onPress={() => router.push('/result?outcome=win')}
+            >
+              <TactileLabel color={color.white}>{t.profile.victoryScreen}</TactileLabel>
+            </Tactile>
+            <Tactile
+              variant="paper"
+              height={52}
+              radius={radius.soft}
+              onPress={() => router.push('/result?outcome=loss')}
+            >
+              <TactileLabel color={color.ink}>{t.profile.defeatScreen}</TactileLabel>
+            </Tactile>
+          </View>
+        )}
 
         {/* Wipes the persisted balance, history and ledger back to the
             starting state — the only way to replay the economy from zero. */}
