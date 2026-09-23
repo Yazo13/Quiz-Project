@@ -17,6 +17,7 @@ import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
 import { Tactile } from '../src/components/Tactile';
 import { TIME_LIMIT, asCategory, bankFor, buildRound } from '../src/data/questions';
+import { presenceAt, seedFor, usePresenceClock } from '../src/data/presence';
 import { rivals } from '../src/data/rivals';
 import { useLocale, useT } from '../src/i18n';
 import { failed, succeeded, tapped, warned } from '../src/lib/feedback';
@@ -30,6 +31,9 @@ import { Display, Eyebrow, UI } from '../src/theme/type';
  * actually find on the board afterwards.
  */
 const opponents = rivals.slice(0, 4);
+
+/** Roughly what a mid-table battle row claims on the arena. */
+const PLAYING_BASE = 1280;
 
 export default function QuizScreen() {
   const router = useRouter();
@@ -63,6 +67,7 @@ export default function QuizScreen() {
 
   // Drawn once per mount, so re-renders cannot reshuffle the round underfoot.
   const [round] = useState(() => buildRound(undefined, bankFor(asCategory(subject))));
+  const now = usePresenceClock();
   const question = round[index];
 
   // The bar is driven by Reanimated so the depletion stays smooth on the UI
@@ -634,7 +639,7 @@ export default function QuizScreen() {
             ))}
           </View>
           <UI size={11} weight="semibold" color={color.ink3}>
-            {t.quiz.playingNow(1280)}
+            {t.quiz.playingNow(presenceAt(PLAYING_BASE, seedFor(question.category), now))}
           </UI>
           <View style={{ flex: 1 }} />
           <Fire size={16} />
