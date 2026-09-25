@@ -105,6 +105,7 @@ export const en = {
     consolation: 'Consolation',
     claim: 'Claim & continue',
     tryAgain: (cost: number) => `Try again · ${cost}`,
+    tryAgainLabel: 'Try again',
     notEnough: 'Not enough tokens',
     share: 'Share result',
     shareMessage: (correct: number, total: number, points: number) =>

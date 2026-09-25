@@ -56,7 +56,11 @@ export default function ResultScreen() {
   };
 
   const retry = () => {
-    if (!spend('entry', ENTRY_COST, 'Retry')) {
+    // The ledger keeps whatever label it is handed, so an English literal
+    // here would sit in a Georgian wallet forever. The subject names the
+    // round the way the arena rows do; a mixed one borrows the retry label.
+    const detail = round?.subject ? t.categories[round.subject] : t.result.tryAgainLabel;
+    if (!spend('entry', ENTRY_COST, detail)) {
       setShort(true);
       return;
     }

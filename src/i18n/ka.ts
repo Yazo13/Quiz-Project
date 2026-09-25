@@ -104,6 +104,7 @@ export const ka: Strings = {
     consolation: 'სანუგეშო',
     claim: 'აიღე და გააგრძელე',
     tryAgain: (cost: number) => `თავიდან · ${cost}`,
+    tryAgainLabel: 'თავიდან',
     notEnough: 'ტოკენი არ გყოფნის',
     share: 'შედეგის გაზიარება',
     shareMessage: (correct: number, total: number, points: number) =>
