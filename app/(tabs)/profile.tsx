@@ -253,6 +253,9 @@ export default function ProfileScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
                         {r.bestStreak > 0 && <Fire size={10} />}
                         <UI size={11} color={color.ink3}>
+                          {/* Older rounds predate the stored subject and
+                              simply say when, as they always did. */}
+                          {r.subject ? `${t.categories[r.subject]} · ` : ''}
                           {whenLabel(r.at, t.wallet.when)}
                           {r.bestStreak > 0 ? ` · ×${r.bestStreak}` : ''}
                         </UI>
