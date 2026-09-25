@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { formatHMS } from './useCountdown.ts';
+import { formatHMS } from '../lib/time.ts';
 
 describe('formatHMS', () => {
   it('pads every field to two digits', () => {

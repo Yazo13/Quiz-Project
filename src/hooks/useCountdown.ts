@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 
 export interface Countdown {
   seconds: number;
@@ -7,35 +8,33 @@ export interface Countdown {
 }
 
 /**
- * Ticks down once a second and stops.
+ * Counts down to a moment rather than for a duration.
  *
- * It used to keep an interval running forever after reaching zero, writing 0
- * over 0 once a second for as long as the screen stayed open, and it gave the
- * caller no way to tell "three hours left" from "already started" — the arena
- * sat on 00:00:00 with the seat still on sale.
+ * A duration lives in state and starts over whenever the component mounts,
+ * which is how the arena's tournament stayed three and three quarter hours
+ * away no matter how long the app had been open. A deadline is read off the
+ * clock, so remounting, backgrounding the app or leaving it open overnight
+ * all give the honest answer.
  *
- * The interval is torn down when the clock finishes rather than left spinning.
+ * Timers are throttled or stopped outright while the app is in the
+ * background, so the clock is also resynced whenever it comes back.
  */
-export function useCountdown(initialSeconds: number): Countdown {
-  const [seconds, setSeconds] = useState(() => Math.max(0, Math.floor(initialSeconds)));
-  const done = seconds <= 0;
+export function useCountdownTo(deadline: number): Countdown {
+  const left = () => Math.max(0, Math.round((deadline - Date.now()) / 1000));
+  const [seconds, setSeconds] = useState(left);
 
   useEffect(() => {
-    if (done) return;
-    const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(id);
-  }, [done]);
+    setSeconds(left());
+    const id = setInterval(() => setSeconds(left()), 1000);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setSeconds(left());
+    });
+    return () => {
+      clearInterval(id);
+      sub.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deadline]);
 
-  return { seconds, done };
-}
-
-/** Splits a second count into zero-padded hh / mm / ss. */
-export function formatHMS(total: number) {
-  const safe = Math.max(0, Math.floor(total));
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return {
-    h: pad(Math.floor(safe / 3600)),
-    m: pad(Math.floor((safe % 3600) / 60)),
-    s: pad(safe % 60),
-  };
+  return { seconds, done: seconds <= 0 };
 }

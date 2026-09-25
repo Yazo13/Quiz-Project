@@ -17,16 +17,15 @@ import {
 } from '../../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { TokenBalance } from '../../src/components/TokenBalance';
-import { formatHMS, useCountdown } from '../../src/hooks/useCountdown';
-import { useT } from '../../src/i18n';
 import { presenceAt, seedFor, usePresenceClock } from '../../src/data/presence';
 import { PLAYER_INITIALS, PLAYER_NAME } from '../../src/data/rivals';
+import { GRAND_ID, tournamentAt } from '../../src/data/tournament';
+import { useCountdownTo } from '../../src/hooks/useCountdown';
+import { useT } from '../../src/i18n';
+import { formatHMS } from '../../src/lib/time';
 import { DAILY_TOKENS, ENTRY_COST, dailyAvailable, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
-
-/** The one tournament the arena currently features. */
-const GRAND_ID = 'grand-tsinandali';
 
 /** Baseline for the arena-wide figure; the rest drift around their own. */
 const LIVE_BASE = 12408;
@@ -62,7 +61,11 @@ const quizHref = (battle: Battle): Href =>
 export default function ArenaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { seconds: total, done: started } = useCountdown(3 * 3600 + 47 * 60 + 22);
+  // The schedule is derived from the clock rather than counted from a fixed
+  // duration, so the countdown survives leaving the tab and coming back.
+  const { startsAt, live } = tournamentAt(Date.now());
+  const { seconds: total, done } = useCountdownTo(startsAt);
+  const started = live || done;
   const { h, m, s } = formatHMS(total);
   // Null means no filter. Tapping the selected category clears it, which is
   // the only way back to the full list from the scroller itself.
@@ -94,7 +97,7 @@ export default function ArenaScreen() {
 
   // The seat is bought once; entering again afterwards is free.
   const enterGrand = () => {
-    if (joined || joinTournament(GRAND_ID, ENTRY_COST, 'Tsinandali')) {
+    if (joined || joinTournament(GRAND_ID, ENTRY_COST, t.arena.grandTournament)) {
       router.push('/quiz');
       return;
     }

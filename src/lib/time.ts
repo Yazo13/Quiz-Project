@@ -22,3 +22,14 @@ export function relative(at: number, now = Date.now()): Relative {
   if (ago < DAY) return { unit: 'hour', value: Math.floor(ago / HOUR) };
   return { unit: 'day', value: Math.floor(ago / DAY) };
 }
+
+/** Splits a second count into zero-padded hh / mm / ss. */
+export function formatHMS(total: number) {
+  const safe = Math.max(0, Math.floor(total));
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return {
+    h: pad(Math.floor(safe / 3600)),
+    m: pad(Math.floor((safe % 3600) / 60)),
+    s: pad(safe % 60),
+  };
+}
