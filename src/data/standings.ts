@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { startOfDay, startOfDays } from '../lib/time';
 import { useAccuracy, useGame } from '../store/game';
 import { color } from '../theme/tokens';
 import {
@@ -25,8 +26,8 @@ export interface Ranked extends Omit<Standing, 'points'> {
 /** Shown until enough rounds exist to compute a real figure. */
 const DEFAULT_ACCURACY = 84;
 
-const DAY = 24 * 60 * 60 * 1000;
-const WEEK = 7 * DAY;
+/** Today and the six days before it, which is what a weekly board means. */
+const WEEK_DAYS = 7;
 
 function pick(points: Points, board: Board) {
   if (board === 'today') return points.day;
@@ -50,13 +51,24 @@ export function useStandings(board: Board = 'grand') {
   const accuracy = useAccuracy();
 
   return useMemo(() => {
-    const now = Date.now();
-    const since = (window: number) =>
-      rounds.reduce((sum, r) => (now - r.at <= window ? sum + r.points : sum), 0);
+    /**
+     * Points from rounds played on or after `from`.
+     *
+     * The boundaries are calendar midnights rather than a rolling count of
+     * hours. A rolling day meant that at one in the morning "Today" still
+     * held most of yesterday evening — and the daily bonus next to it was
+     * already using the calendar, so the same screen had two ideas of a day.
+     */
+    const since = (from: number) =>
+      rounds.reduce((sum, r) => (r.at >= from ? sum + r.points : sum), 0);
 
     const me: Standing = {
       name: PLAYER_NAME,
-      points: { day: since(DAY), week: since(WEEK), all: points },
+      points: {
+        day: since(startOfDay()),
+        week: since(startOfDays(WEEK_DAYS)),
+        all: points,
+      },
       streak,
       accuracy: accuracy === null ? DEFAULT_ACCURACY : Math.round(accuracy * 100),
       tint: color.coral,

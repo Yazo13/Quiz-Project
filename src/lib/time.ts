@@ -33,3 +33,27 @@ export function formatHMS(total: number) {
     s: pad(safe % 60),
   };
 }
+
+/**
+ * Midnight at the start of the local day containing `at`.
+ *
+ * Windows built by subtracting a fixed number of hours drift against the
+ * calendar: at one in the morning a rolling twenty-four hours still holds
+ * most of yesterday evening, which is not what "today" says. Built from a
+ * Date so a daylight-saving change moves the boundary with the clock.
+ */
+export function startOfDay(at: number = Date.now()): number {
+  const d = new Date(at);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+/**
+ * Midnight at the start of a window of `days` calendar days ending today.
+ * `days = 1` is today alone; `days = 7` is today and the six before it.
+ */
+export function startOfDays(days: number, at: number = Date.now()): number {
+  const d = new Date(startOfDay(at));
+  d.setDate(d.getDate() - (Math.max(1, Math.floor(days)) - 1));
+  return d.getTime();
+}
