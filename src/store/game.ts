@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import type { CategoryKey } from '../data/questions';
+
 /**
  * The single source of truth for everything the player owns or has done.
  *
@@ -44,6 +46,11 @@ export interface RoundResult {
   earned: number;
   /** Mean answer time in ms; unanswered questions count as the full limit. */
   avgMs: number;
+  /**
+   * The category the round was played on, or undefined for a mixed round.
+   * Kept so "play again" can deal the same subject again.
+   */
+  subject?: CategoryKey;
 }
 
 /** A new player starts with enough to enter a tournament and feel the economy. */
@@ -143,6 +150,7 @@ interface GameState {
     total: number;
     bestStreak: number;
     avgMs: number;
+    subject?: CategoryKey;
   }) => RoundResult;
   resetProgress: () => void;
 }
@@ -237,7 +245,7 @@ export const useGame = create<GameState>()(
         return true;
       },
 
-      finishRound: ({ correct, total, bestStreak, avgMs }) => {
+      finishRound: ({ correct, total, bestStreak, avgMs, subject }) => {
         const won = didWin(correct, total);
         const points = roundPoints(correct);
         const earned = roundTokens(correct, total, bestStreak);
@@ -250,6 +258,7 @@ export const useGame = create<GameState>()(
           points,
           earned,
           avgMs,
+          subject,
         };
 
         set((s) => ({

@@ -64,9 +64,11 @@ export default function QuizScreen() {
   // The arena says what this round is about; an unknown or absent value plays
   // the whole bank. Narrowed rather than trusted — it arrives as a URL string.
   const { subject } = useLocalSearchParams<{ subject?: string }>();
+  /** Undefined for a mixed round, and for anything the URL made up. */
+  const subjectKey = asCategory(subject);
 
   // Drawn once per mount, so re-renders cannot reshuffle the round underfoot.
-  const [round] = useState(() => buildRound(undefined, bankFor(asCategory(subject))));
+  const [round] = useState(() => buildRound(undefined, bankFor(subjectKey)));
   const now = usePresenceClock();
   const question = round[index];
 
@@ -218,6 +220,7 @@ export default function QuizScreen() {
         total: round.length,
         bestStreak: bestStreak.current,
         avgMs: times.current.reduce((a, b) => a + b, 0) / answered,
+        subject: subjectKey,
       });
       router.replace(`/result?round=${result.id}`);
       return;
@@ -250,6 +253,7 @@ export default function QuizScreen() {
       total: answered,
       bestStreak: bestStreak.current,
       avgMs: times.current.reduce((a, b) => a + b, 0) / answered,
+      subject: subjectKey,
     });
     router.replace(`/result?round=${result.id}`);
   };

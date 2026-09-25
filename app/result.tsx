@@ -60,7 +60,9 @@ export default function ResultScreen() {
       setShort(true);
       return;
     }
-    router.replace('/quiz');
+    // Same subject as the round just played, or the whole bank if it was a
+    // mixed one. Dropping it sent a Travel player into every category.
+    router.replace(round?.subject ? `/quiz?subject=${round.subject}` : '/quiz');
   };
 
   return (

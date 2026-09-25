@@ -124,6 +124,23 @@ describe('finishing a round', () => {
     assert.equal(state().streak, 0);
   });
 
+  it('remembers the subject, so play-again can deal it again', () => {
+    const played = state().finishRound({
+      correct: 7,
+      total: 10,
+      bestStreak: 3,
+      avgMs: 4100,
+      subject: 'travel',
+    });
+    assert.equal(played.subject, 'travel');
+    assert.equal(state().rounds[0].subject, 'travel');
+  });
+
+  it('leaves a mixed round without one', () => {
+    const played = state().finishRound({ correct: 7, total: 10, bestStreak: 3, avgMs: 4100 });
+    assert.equal(played.subject, undefined);
+  });
+
   it('keeps rounds newest first', () => {
     state().finishRound({ correct: 4, total: 10, bestStreak: 1, avgMs: 4000 });
     state().finishRound({ correct: 8, total: 10, bestStreak: 5, avgMs: 3000 });
