@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
 
+import { startOfDay, startOfDays } from '../lib/time.ts';
+
 import {
   DAILY_TOKENS,
   dailyAvailable,
@@ -9,6 +11,7 @@ import {
   didWin,
   MIN_WIN_LENGTH,
   WIN_SHARE,
+  pointsSince,
   roundPoints,
   roundTokens,
   useGame,
@@ -148,6 +151,66 @@ describe('finishing a round', () => {
       state().rounds.map((r) => r.correct),
       [8, 4],
     );
+  });
+});
+
+describe('the per-day points tally', () => {
+  const played = (correct: number) =>
+    state().finishRound({ correct, total: 10, bestStreak: 0, avgMs: 4000 });
+
+  it('records a round against today', () => {
+    played(7);
+    assert.equal(state().daily[String(startOfDay())], roundPoints(7));
+  });
+
+  it('adds up several rounds on the same day', () => {
+    played(7);
+    played(4);
+    assert.equal(
+      pointsSince(state().daily, startOfDay()),
+      roundPoints(7) + roundPoints(4),
+    );
+  });
+
+  it('keeps counting past the round history limit', () => {
+    // The bug this replaced: the board summed the player's own week out of
+    // `rounds`, which stops at thirty, so a heavy week lost its earliest days.
+    for (let i = 0; i < 35; i++) played(7);
+
+    assert.equal(state().rounds.length, 30, 'the display history is still capped');
+    assert.equal(
+      pointsSince(state().daily, startOfDays(7)),
+      35 * roundPoints(7),
+      'every round still counts towards the week',
+    );
+  });
+
+  it('is cleared by a reset', () => {
+    played(7);
+    state().resetProgress();
+    assert.deepEqual(state().daily, {});
+  });
+});
+
+describe('pointsSince', () => {
+  const day = (back: number) => String(startOfDays(back + 1));
+
+  it('is zero on an empty tally', () => {
+    assert.equal(pointsSince({}, startOfDays(7)), 0);
+  });
+
+  it('counts the day the window opens on', () => {
+    assert.equal(pointsSince({ [day(6)]: 500 }, startOfDays(7)), 500);
+  });
+
+  it('leaves out anything before the window', () => {
+    assert.equal(pointsSince({ [day(7)]: 500 }, startOfDays(7)), 0);
+  });
+
+  it('sums across the days inside it', () => {
+    const tally = { [day(0)]: 100, [day(3)]: 200, [day(6)]: 300, [day(9)]: 400 };
+    assert.equal(pointsSince(tally, startOfDays(7)), 600);
+    assert.equal(pointsSince(tally, startOfDay()), 100);
   });
 });
 

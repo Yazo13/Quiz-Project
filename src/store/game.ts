@@ -4,6 +4,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { CategoryKey } from '../data/questions';
+// Explicit extension: node:test imports this module directly and Node's
+// ESM loader resolves the real filename. lib/time has no imports of its own.
+import { startOfDay, startOfDays } from '../lib/time.ts';
 
 /**
  * The single source of truth for everything the player owns or has done.
@@ -98,6 +101,42 @@ export function dailyAvailable(lastDailyAt: number | null, now = Date.now()) {
   return lastDailyAt === null || dayKey(lastDailyAt) !== dayKey(now);
 }
 
+/**
+ * How many finished rounds are kept for the profile's history.
+ *
+ * A display limit, not an accounting one: see `daily` below for why the two
+ * had to stop being the same number.
+ */
+const ROUND_HISTORY = 30;
+/** How far back the per-day tally is kept. A fortnight past the weekly board. */
+const DAILY_KEPT_DAYS = 21;
+
+/** Points scored on one local day, keyed by that day's midnight. */
+export type DailyPoints = Record<string, number>;
+
+/**
+ * Points scored on or after `from`, which must be a local midnight.
+ *
+ * Pure so the windows can be tested without a clock.
+ */
+export function pointsSince(daily: DailyPoints, from: number): number {
+  return Object.entries(daily).reduce(
+    (sum, [at, points]) => (Number(at) >= from ? sum + points : sum),
+    0,
+  );
+}
+
+/** Adds a round's points to today's entry and drops anything long past. */
+function addDaily(daily: DailyPoints, points: number, now = Date.now()): DailyPoints {
+  const today = String(startOfDay(now));
+  const keep = startOfDays(DAILY_KEPT_DAYS, now);
+  const next: DailyPoints = { [today]: (daily[today] ?? 0) + points };
+  for (const [at, scored] of Object.entries(daily)) {
+    if (at !== today && Number(at) >= keep) next[at] = scored;
+  }
+  return next;
+}
+
 const POINTS_PER_CORRECT = 120;
 /** Won rounds pay per correct answer plus a streak kicker; losses pay a floor. */
 const TOKENS_PER_CORRECT = 50;
@@ -122,6 +161,16 @@ interface GameState {
   streak: number;
   ledger: Tx[];
   rounds: RoundResult[];
+  /**
+   * Points scored per local day, keyed by that day's midnight.
+   *
+   * The leaderboard's own "today" and "weekly" figures used to be summed out
+   * of `rounds`, which keeps only the last thirty. Anyone playing more than
+   * that inside a week had the earlier days quietly dropped from their own
+   * total, so the board ranked them below where they had actually finished.
+   * This tally is not capped by round count, only by age.
+   */
+  daily: DailyPoints;
   /** Tournament ids the player has paid into. */
   joined: string[];
   /** When the daily bonus was last taken. Null until the first claim. */
@@ -196,6 +245,7 @@ export const useGame = create<GameState>()(
       streak: 0,
       ledger: [],
       rounds: [],
+      daily: {},
       joined: [],
       lastDailyAt: null,
       haptics: true,
@@ -267,7 +317,8 @@ export const useGame = create<GameState>()(
           // The round's own streak is what carries forward — a round that
           // ended on a wrong answer starts the next one from zero.
           streak: bestStreak,
-          rounds: [result, ...s.rounds].slice(0, 30),
+          rounds: [result, ...s.rounds].slice(0, ROUND_HISTORY),
+          daily: addDaily(s.daily, points),
           ledger: [
             {
               id: nextId(),
@@ -290,6 +341,7 @@ export const useGame = create<GameState>()(
           streak: 0,
           ledger: [],
           rounds: [],
+          daily: {},
           joined: [],
           lastDailyAt: null,
         }),
@@ -297,15 +349,27 @@ export const useGame = create<GameState>()(
     {
       name: 'gargari-quiz/v1',
       storage: createJSONStorage(() => storage),
-      version: 1,
+      version: 2,
       migrate: (persisted, from) => {
+        const state = persisted as GameState;
+
         // v0 had no localePinned. Those installs were already running in a
         // language the player has been looking at, so adopting the device
         // language underneath them would be a surprise — treat it as pinned.
-        if (from < 1) {
-          return { ...(persisted as GameState), localePinned: true };
+        if (from < 1) state.localePinned = true;
+
+        // v1 had no per-day tally. Seeding it from the stored rounds keeps
+        // the board steady across the upgrade; those rounds are all that was
+        // ever counted anyway, so nothing is lost that was not lost already.
+        if (from < 2) {
+          state.daily = (state.rounds ?? []).reduce<DailyPoints>((acc, r) => {
+            const day = String(startOfDay(r.at));
+            acc[day] = (acc[day] ?? 0) + r.points;
+            return acc;
+          }, {});
         }
-        return persisted as GameState;
+
+        return state;
       },
     },
   ),

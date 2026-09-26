@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { startOfDay, startOfDays } from '../lib/time';
-import { useAccuracy, useGame } from '../store/game';
+import { pointsSince, useAccuracy, useGame } from '../store/game';
 import { color } from '../theme/tokens';
 import {
   PLAYER_INITIALS,
@@ -46,27 +46,19 @@ function pick(points: Points, board: Board) {
  */
 export function useStandings(board: Board = 'grand') {
   const points = useGame((s) => s.points);
-  const rounds = useGame((s) => s.rounds);
+  const daily = useGame((s) => s.daily);
   const streak = useGame((s) => s.streak);
   const accuracy = useAccuracy();
 
   return useMemo(() => {
-    /**
-     * Points from rounds played on or after `from`.
-     *
-     * The boundaries are calendar midnights rather than a rolling count of
-     * hours. A rolling day meant that at one in the morning "Today" still
-     * held most of yesterday evening — and the daily bonus next to it was
-     * already using the calendar, so the same screen had two ideas of a day.
-     */
-    const since = (from: number) =>
-      rounds.reduce((sum, r) => (r.at >= from ? sum + r.points : sum), 0);
-
     const me: Standing = {
       name: PLAYER_NAME,
       points: {
-        day: since(startOfDay()),
-        week: since(startOfDays(WEEK_DAYS)),
+        // Read off the store's per-day tally rather than summed from the
+        // round history, which keeps only the last thirty — a week of heavy
+        // play used to lose its earliest days out of the player's own total.
+        day: pointsSince(daily, startOfDay()),
+        week: pointsSince(daily, startOfDays(WEEK_DAYS)),
         all: points,
       },
       streak,
@@ -91,5 +83,5 @@ export function useStandings(board: Board = 'grand') {
       /** The player directly above — the one worth chasing. Undefined at #1. */
       ahead: table[self.rank - 2] as Ranked | undefined,
     };
-  }, [board, points, rounds, streak, accuracy]);
+  }, [board, points, daily, streak, accuracy]);
 }
