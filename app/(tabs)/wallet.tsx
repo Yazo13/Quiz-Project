@@ -7,22 +7,15 @@ import { PackGrid } from '../../src/components/PackGrid';
 import { Coin } from '../../src/components/Primitives';
 import { Segmented } from '../../src/components/Segmented';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
-import { Strings, useT } from '../../src/i18n';
+import { useT, whenLabel } from '../../src/i18n';
 import { succeeded } from '../../src/lib/feedback';
 import { group } from '../../src/lib/number';
-import { relative } from '../../src/lib/time';
 import { useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
 /** Tokens per US dollar, taken from the headline $9.99 / 1,200 pack. */
 const TOKENS_PER_DOLLAR = 120;
-
-function whenLabel(at: number, when: Strings['wallet']['when']) {
-  const { unit, value } = relative(at);
-  if (unit === 'now') return when.now;
-  return when[unit](value);
-}
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();

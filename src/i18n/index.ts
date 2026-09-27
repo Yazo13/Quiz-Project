@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { getLocales } from 'expo-localization';
 
+import { relative } from '../lib/time';
 import { Locale, useGame } from '../store/game';
-import { en } from './en';
+import { en, type Strings } from './en';
 import { ka } from './ka';
 
 export type { Strings } from './en';
@@ -13,6 +14,19 @@ export const localeNames: Record<Locale, string> = {
   ka: 'ქართული',
   en: 'English',
 };
+
+/**
+ * A timestamp as "3 hours ago", in the active language.
+ *
+ * `relative` deliberately returns a unit and a value rather than a finished
+ * string, so it knows nothing about wording; this is the other half. The
+ * wallet and the profile each had their own identical copy of it.
+ */
+export function whenLabel(at: number, when: Strings['wallet']['when']): string {
+  const { unit, value } = relative(at);
+  if (unit === 'now') return when.now;
+  return when[unit](value);
+}
 
 /** The active locale. Persisted, so the choice survives a restart. */
 export function useLocale() {

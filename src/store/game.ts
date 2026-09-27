@@ -512,7 +512,3 @@ export function useWeeklyEarned() {
 export function useAccuracy() {
   return useGame((s) => (s.career.seen ? s.career.correct / s.career.seen : null));
 }
-
-export function useBestStreak() {
-  return useGame((s) => s.rounds.reduce((m, r) => Math.max(m, r.bestStreak), 0));
-}

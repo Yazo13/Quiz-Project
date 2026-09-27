@@ -10,8 +10,7 @@ import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tact
 import { achievements, sortForShelf } from '../../src/data/achievements';
 import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
 import { useArmed } from '../../src/hooks/useArmed';
-import { Strings, localeNames, useLocale, useSetLocale, useT } from '../../src/i18n';
-import { relative } from '../../src/lib/time';
+import { localeNames, useLocale, useSetLocale, useT, whenLabel } from '../../src/i18n';
 import { Locale, didWin, useAccuracy, useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
@@ -21,11 +20,6 @@ const trophyTints = [color.gold2, color.forest, color.coral, color.sky2, color.g
 /** How many past rounds the shelf shows before it stops being a summary. */
 const RECENT_ROUNDS = 5;
 
-function whenLabel(at: number, when: Strings['wallet']['when']) {
-  const { unit, value } = relative(at);
-  if (unit === 'now') return when.now;
-  return when[unit](value);
-}
 const trophyTint = (i: number) => trophyTints[i % trophyTints.length];
 
 export default function ProfileScreen() {
