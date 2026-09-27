@@ -184,3 +184,27 @@ describe('a banked trophy', () => {
     assert.ok(!earnedIds([round({ correct: 5 })], 0, {}).includes('firstWin'));
   });
 });
+
+describe('the regular trophy', () => {
+  const held = (played: number) =>
+    achievements({ rounds: [], tokens: 0, played }).find((a) => a.id === 'regular')!;
+
+  it('counts rounds finished, not rounds still stored', () => {
+    // The stored history caps at thirty, so its length cannot be the count.
+    assert.equal(held(24).earned, false);
+    assert.equal(held(25).earned, true);
+    assert.deepEqual(held(24).progress, { have: 24, need: 25 });
+  });
+
+  it('does not show more progress than the trophy needs', () => {
+    assert.deepEqual(held(300).progress, { have: 25, need: 25 });
+  });
+
+  it('falls back to the rounds it was given when no count comes with them', () => {
+    const shelf = achievements({ rounds: [round(), round()], tokens: 0 });
+    assert.deepEqual(shelf.find((a) => a.id === 'regular')?.progress, {
+      have: 2,
+      need: 25,
+    });
+  });
+});

@@ -37,14 +37,24 @@ export default function ProfileScreen() {
   const setLocale = useSetLocale();
 
   const roundHistory = useGame((s) => s.rounds);
+  // Lifetime, not the length of the stored history — that stops at thirty.
+  const career = useGame((s) => s.career);
   const trophies = useGame((s) => s.trophies);
   const tokens = useGame((s) => s.tokens);
-  const rounds = roundHistory.length;
+  const rounds = career.rounds;
   const streak = useGame((s) => s.streak);
 
   const shelf = useMemo(
-    () => sortForShelf(achievements({ rounds: roundHistory, tokens, awarded: trophies })),
-    [roundHistory, tokens, trophies],
+    () =>
+      sortForShelf(
+        achievements({
+          rounds: roundHistory,
+          tokens,
+          awarded: trophies,
+          played: career.rounds,
+        }),
+      ),
+    [roundHistory, tokens, trophies, career.rounds],
   );
   const locked = shelf.filter((a) => !a.earned).length;
   const recent = roundHistory.slice(0, RECENT_ROUNDS);

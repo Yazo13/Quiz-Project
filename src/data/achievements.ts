@@ -35,6 +35,11 @@ export interface Progress {
    * oldest surviving round was.
    */
   awarded?: Record<string, number>;
+  /**
+   * Rounds finished ever. The stored history is capped, so its length stops
+   * being a count of what the player has played.
+   */
+  played?: number;
 }
 
 export interface Achievement {
@@ -76,7 +81,12 @@ export function earnedByRound(r: RoundResult): AchievementId[] {
   return ids;
 }
 
-export function achievements({ rounds, tokens, awarded = {} }: Progress): Achievement[] {
+export function achievements({
+  rounds,
+  tokens,
+  awarded = {},
+  played = rounds.length,
+}: Progress): Achievement[] {
   /**
    * Banked first, then whatever the surviving rounds still show. A trophy the
    * record knows about keeps the date it was actually earned on.
@@ -111,8 +121,8 @@ export function achievements({ rounds, tokens, awarded = {} }: Progress): Achiev
     { id: 'quickDraw', ...held('quickDraw', quick), progress: null },
     {
       id: 'regular',
-      earned: rounds.length >= REGULAR_ROUNDS,
-      progress: { have: Math.min(rounds.length, REGULAR_ROUNDS), need: REGULAR_ROUNDS },
+      earned: played >= REGULAR_ROUNDS,
+      progress: { have: Math.min(played, REGULAR_ROUNDS), need: REGULAR_ROUNDS },
     },
     {
       id: 'hoard',

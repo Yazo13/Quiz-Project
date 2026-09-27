@@ -215,6 +215,37 @@ describe('pointsSince', () => {
   });
 });
 
+describe('the career totals', () => {
+  const played = (correct: number, total = 10) =>
+    state().finishRound({ correct, total, bestStreak: 0, avgMs: 4000 });
+
+  it('starts empty, with no accuracy to report', () => {
+    assert.deepEqual(state().career, { rounds: 0, seen: 0, correct: 0 });
+  });
+
+  it('counts every round, every question and every right answer', () => {
+    played(7);
+    played(3, 5);
+    assert.deepEqual(state().career, { rounds: 2, seen: 15, correct: 10 });
+  });
+
+  it('keeps counting past the round history limit', () => {
+    // The bug: the profile showed the length of the stored history, which
+    // stops at thirty, as the number of rounds the player had finished.
+    for (let i = 0; i < 40; i++) played(7);
+
+    assert.equal(state().rounds.length, 30);
+    assert.equal(state().career.rounds, 40);
+    assert.equal(state().career.seen, 400);
+  });
+
+  it('is cleared by a reset', () => {
+    played(7);
+    state().resetProgress();
+    assert.deepEqual(state().career, { rounds: 0, seen: 0, correct: 0 });
+  });
+});
+
 describe('the trophy record', () => {
   const played = (over: { correct?: number; bestStreak?: number; avgMs?: number } = {}) =>
     state().finishRound({

@@ -82,6 +82,25 @@ const DAILY_KEPT_DAYS = 21;
 export type DailyPoints = Record<string, number>;
 
 /**
+ * Totals that only ever go up, for the figures that claim to be lifetime ones.
+ *
+ * The profile's round count was the length of the stored history, which stops
+ * at thirty — a player on their two hundredth round had been reading "30" for
+ * weeks. Accuracy had the same shape without looking like it: a mean over the
+ * last thirty rounds, under a label that just says Accuracy.
+ */
+export interface Career {
+  /** Rounds finished, ever. */
+  rounds: number;
+  /** Questions seen and answers got right, ever. */
+  seen: number;
+  correct: number;
+}
+
+/** A player who has finished nothing yet. */
+const NO_CAREER: Career = { rounds: 0, seen: 0, correct: 0 };
+
+/**
  * Points scored on or after `from`, which must be a local midnight.
  *
  * Pure so the windows can be tested without a clock.
@@ -157,6 +176,7 @@ interface GameState {
    * dropping out of the capped history. Nothing but a reset removes one.
    */
   trophies: Record<string, number>;
+  career: Career;
   /** Tournament ids the player has paid into. */
   joined: string[];
   /** When the daily bonus was last taken. Null until the first claim. */
@@ -233,6 +253,7 @@ export const useGame = create<GameState>()(
       rounds: [],
       daily: {},
       trophies: {},
+      career: NO_CAREER,
       joined: [],
       lastDailyAt: null,
       haptics: true,
@@ -307,6 +328,11 @@ export const useGame = create<GameState>()(
           rounds: [result, ...s.rounds].slice(0, ROUND_HISTORY),
           daily: addDaily(s.daily, points),
           trophies: bank(s.trophies, earnedByRound(result), result.at),
+          career: {
+            rounds: s.career.rounds + 1,
+            seen: s.career.seen + total,
+            correct: s.career.correct + correct,
+          },
           ledger: [
             {
               id: nextId(),
@@ -331,6 +357,7 @@ export const useGame = create<GameState>()(
           rounds: [],
           daily: {},
           trophies: {},
+          career: NO_CAREER,
           joined: [],
           lastDailyAt: null,
         }),
@@ -338,7 +365,7 @@ export const useGame = create<GameState>()(
     {
       name: 'gargari-quiz/v1',
       storage: createJSONStorage(() => storage),
-      version: 3,
+      version: 4,
       migrate: (persisted, from) => {
         const state = persisted as GameState;
 
@@ -369,6 +396,20 @@ export const useGame = create<GameState>()(
               (held, r) => bank(held, earnedByRound(r), r.at),
               {},
             );
+        }
+
+        // v3 counted rounds and accuracy off the stored history. Seeding the
+        // totals from it is the best that can be done now — rounds already
+        // pruned were never counted under the old code either.
+        if (from < 4) {
+          state.career = (state.rounds ?? []).reduce<Career>(
+            (c, r) => ({
+              rounds: c.rounds + 1,
+              seen: c.seen + r.total,
+              correct: c.correct + r.correct,
+            }),
+            NO_CAREER,
+          );
         }
 
         return state;
@@ -415,13 +456,15 @@ export function useWeeklyEarned() {
   });
 }
 
-/** Correct answers over questions seen, across every stored round. */
+/**
+ * Correct answers over questions seen, for the whole account.
+ *
+ * It used to be averaged over the stored rounds, so it quietly became "your
+ * last thirty rounds" — a long record could not be moved by a bad week, or by
+ * a good one.
+ */
 export function useAccuracy() {
-  return useGame((s) => {
-    const seen = s.rounds.reduce((n, r) => n + r.total, 0);
-    if (!seen) return null;
-    return s.rounds.reduce((n, r) => n + r.correct, 0) / seen;
-  });
+  return useGame((s) => (s.career.seen ? s.career.correct / s.career.seen : null));
 }
 
 export function useBestStreak() {
