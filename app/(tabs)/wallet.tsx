@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { PackGrid } from '../../src/components/PackGrid';
+import { worthInDollars } from '../../src/data/packs';
 import { Coin } from '../../src/components/Primitives';
 import { Segmented } from '../../src/components/Segmented';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
@@ -13,9 +14,6 @@ import { group } from '../../src/lib/number';
 import { useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
-
-/** Tokens per US dollar, taken from the headline $9.99 / 1,200 pack. */
-const TOKENS_PER_DOLLAR = 120;
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
@@ -97,7 +95,7 @@ export default function WalletScreen() {
                 </View>
               </View>
               <UI size={12} weight="semibold" color="rgba(255,255,255,0.7)" style={{ marginTop: 6 }}>
-                {t.wallet.summary((tokens / TOKENS_PER_DOLLAR).toFixed(2), weekly)}
+                {t.wallet.summary(worthInDollars(tokens), weekly)}
               </UI>
 
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>

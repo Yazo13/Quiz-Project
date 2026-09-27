@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 
+import { type PackVariant, packs, priceLabel } from '../data/packs';
 import { useArmed } from '../hooks/useArmed';
 import { useT } from '../i18n';
 import { tapped } from '../lib/feedback';
@@ -8,29 +9,6 @@ import { border, color, radius, screenPad } from '../theme/tokens';
 import { Display, Eyebrow, UI } from '../theme/type';
 import { Coin } from './Primitives';
 import { TactileSurface } from './Tactile';
-
-type PackVariant = 'paper' | 'gold' | 'forest' | 'coral';
-
-export interface Pack {
-  tokens: number;
-  price: string;
-  bonus?: string;
-  variant: PackVariant;
-  badge?: 'popular' | 'best';
-}
-
-/**
- * The store shelf. Prices are the ones the design specified; the token counts
- * climb faster than the price does, which is what the bonus badges are saying.
- */
-export const packs: Pack[] = [
-  { tokens: 100, price: '$0.99', variant: 'paper' },
-  { tokens: 550, price: '$4.99', bonus: '+10%', variant: 'paper' },
-  { tokens: 1200, price: '$9.99', bonus: '+20%', variant: 'gold', badge: 'popular' },
-  { tokens: 2800, price: '$19.99', bonus: '+40%', variant: 'forest' },
-  { tokens: 6500, price: '$39.99', bonus: '+60%', variant: 'paper' },
-  { tokens: 15000, price: '$79.99', bonus: '+100%', variant: 'coral', badge: 'best' },
-];
 
 const packStyles: Record<PackVariant, { bg: string; fg: string; r: number }> = {
   paper: { bg: color.surface, fg: color.ink, r: radius.sharp },
@@ -106,8 +84,8 @@ export function PackGrid({ onBuy }: { onBuy: (amount: number) => void }) {
                   // is the part a screen reader would otherwise miss.
                   accessibilityLabel={
                     armed === p.tokens
-                      ? t.wallet.confirmBuy(p.price)
-                      : `${group(p.tokens)} ${t.wallet.tokens} · ${p.price}`
+                      ? t.wallet.confirmBuy(priceLabel(p.usd))
+                      : `${group(p.tokens)} ${t.wallet.tokens} · ${priceLabel(p.usd)}`
                   }
                   style={{
                     height: 36,
@@ -126,7 +104,9 @@ export function PackGrid({ onBuy }: { onBuy: (amount: number) => void }) {
                   }}
                 >
                   <UI size={13} weight="bold" color={color.white}>
-                    {armed === p.tokens ? t.wallet.confirmBuy(p.price) : p.price}
+                    {armed === p.tokens
+                      ? t.wallet.confirmBuy(priceLabel(p.usd))
+                      : priceLabel(p.usd)}
                   </UI>
                 </Pressable>
               </View>
