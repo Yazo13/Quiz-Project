@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { startOfDay, startOfDays } from '../lib/time';
-import { pointsSince, useAccuracy, useGame } from '../store/game';
+import { WEEK_DAYS, pointsSince, useAccuracy, useGame } from '../store/game';
 import { color } from '../theme/tokens';
 import {
   PLAYER_INITIALS,
@@ -26,8 +26,6 @@ export interface Ranked extends Omit<Standing, 'points'> {
 /** Shown until enough rounds exist to compute a real figure. */
 const DEFAULT_ACCURACY = 84;
 
-/** Today and the six days before it, which is what a weekly board means. */
-const WEEK_DAYS = 7;
 
 function pick(points: Points, board: Board) {
   if (board === 'today') return points.day;

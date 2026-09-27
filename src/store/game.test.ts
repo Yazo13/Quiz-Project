@@ -12,6 +12,7 @@ import {
   MIN_WIN_LENGTH,
   WIN_SHARE,
   bank,
+  earnedSince,
   pointsSince,
   roundPoints,
   roundTokens,
@@ -159,9 +160,33 @@ describe('the per-day points tally', () => {
   const played = (correct: number) =>
     state().finishRound({ correct, total: 10, bestStreak: 0, avgMs: 4000 });
 
-  it('records a round against today', () => {
+  it('records a round against today, points and tokens both', () => {
     played(7);
-    assert.equal(state().daily[String(startOfDay())], roundPoints(7));
+    assert.deepEqual(state().daily[String(startOfDay())], {
+      points: roundPoints(7),
+      earned: roundTokens(7, 10, 0),
+    });
+  });
+
+  it('counts the daily bonus as earned, but not as points', () => {
+    state().claimDaily();
+    assert.deepEqual(state().daily[String(startOfDay())], {
+      points: 0,
+      earned: DAILY_TOKENS,
+    });
+  });
+
+  it('keeps a week of earnings whatever the ledger has room for', () => {
+    // The bug: this figure was summed out of the ledger, which keeps fifty
+    // entries — one a round, plus one for every purchase and entry fee.
+    for (let i = 0; i < 60; i++) played(7);
+
+    assert.equal(state().ledger.length, 50, 'the ledger is still capped');
+    assert.equal(
+      earnedSince(state().daily, startOfDays(7)),
+      60 * roundTokens(7, 10, 0),
+      'every round still counts towards the week',
+    );
   });
 
   it('adds up several rounds on the same day', () => {
@@ -193,25 +218,38 @@ describe('the per-day points tally', () => {
   });
 });
 
-describe('pointsSince', () => {
+describe('pointsSince and earnedSince', () => {
   const day = (back: number) => String(startOfDays(back + 1));
+  const totals = (points: number, earned: number) => ({ points, earned });
 
-  it('is zero on an empty tally', () => {
+  it('are zero on an empty tally', () => {
     assert.equal(pointsSince({}, startOfDays(7)), 0);
+    assert.equal(earnedSince({}, startOfDays(7)), 0);
   });
 
-  it('counts the day the window opens on', () => {
-    assert.equal(pointsSince({ [day(6)]: 500 }, startOfDays(7)), 500);
+  it('count the day the window opens on', () => {
+    const tally = { [day(6)]: totals(500, 90) };
+    assert.equal(pointsSince(tally, startOfDays(7)), 500);
+    assert.equal(earnedSince(tally, startOfDays(7)), 90);
   });
 
-  it('leaves out anything before the window', () => {
-    assert.equal(pointsSince({ [day(7)]: 500 }, startOfDays(7)), 0);
+  it('leave out anything before the window', () => {
+    const tally = { [day(7)]: totals(500, 90) };
+    assert.equal(pointsSince(tally, startOfDays(7)), 0);
+    assert.equal(earnedSince(tally, startOfDays(7)), 0);
   });
 
-  it('sums across the days inside it', () => {
-    const tally = { [day(0)]: 100, [day(3)]: 200, [day(6)]: 300, [day(9)]: 400 };
+  it('sum across the days inside it, each reading its own field', () => {
+    const tally = {
+      [day(0)]: totals(100, 10),
+      [day(3)]: totals(200, 20),
+      [day(6)]: totals(300, 30),
+      [day(9)]: totals(400, 40),
+    };
     assert.equal(pointsSince(tally, startOfDays(7)), 600);
+    assert.equal(earnedSince(tally, startOfDays(7)), 60);
     assert.equal(pointsSince(tally, startOfDay()), 100);
+    assert.equal(earnedSince(tally, startOfDay()), 10);
   });
 });
 

@@ -77,9 +77,20 @@ export function dailyAvailable(lastDailyAt: number | null, now = Date.now()) {
 const ROUND_HISTORY = 30;
 /** How far back the per-day tally is kept. A fortnight past the weekly board. */
 const DAILY_KEPT_DAYS = 21;
+/** Today and the six days before it, which is what a weekly figure means. */
+export const WEEK_DAYS = 7;
 
-/** Points scored on one local day, keyed by that day's midnight. */
-export type DailyPoints = Record<string, number>;
+/** What one local day came to. */
+export interface DayTotals {
+  points: number;
+  /** Tokens won by playing — round rewards and the daily bonus, not purchases. */
+  earned: number;
+}
+
+/** Per-day totals, keyed by that day's local midnight. */
+export type Daily = Record<string, DayTotals>;
+
+const NO_DAY: DayTotals = { points: 0, earned: 0 };
 
 /**
  * Totals that only ever go up, for the figures that claim to be lifetime ones.
@@ -105,20 +116,41 @@ const NO_CAREER: Career = { rounds: 0, seen: 0, correct: 0 };
  *
  * Pure so the windows can be tested without a clock.
  */
-export function pointsSince(daily: DailyPoints, from: number): number {
+function sumSince(daily: Daily, from: number, of: (d: DayTotals) => number): number {
   return Object.entries(daily).reduce(
-    (sum, [at, points]) => (Number(at) >= from ? sum + points : sum),
+    (sum, [at, day]) => (Number(at) >= from ? sum + of(day) : sum),
     0,
   );
 }
 
+export function pointsSince(daily: Daily, from: number): number {
+  return sumSince(daily, from, (d) => d.points);
+}
+
+/**
+ * Tokens won on or after `from`.
+ *
+ * The wallet's "earned this week" used to be summed out of the ledger, which
+ * keeps fifty entries — two a round, so a busy week ran off the end of it and
+ * the figure came out low. It counted bought packs as earnings too.
+ */
+export function earnedSince(daily: Daily, from: number): number {
+  return sumSince(daily, from, (d) => d.earned);
+}
+
 /** Adds a round's points to today's entry and drops anything long past. */
-function addDaily(daily: DailyPoints, points: number, now = Date.now()): DailyPoints {
+function addDaily(daily: Daily, add: Partial<DayTotals>, now = Date.now()): Daily {
   const today = String(startOfDay(now));
   const keep = startOfDays(DAILY_KEPT_DAYS, now);
-  const next: DailyPoints = { [today]: (daily[today] ?? 0) + points };
-  for (const [at, scored] of Object.entries(daily)) {
-    if (at !== today && Number(at) >= keep) next[at] = scored;
+  const so_far = daily[today] ?? NO_DAY;
+  const next: Daily = {
+    [today]: {
+      points: so_far.points + (add.points ?? 0),
+      earned: so_far.earned + (add.earned ?? 0),
+    },
+  };
+  for (const [at, day] of Object.entries(daily)) {
+    if (at !== today && Number(at) >= keep) next[at] = day;
   }
   return next;
 }
@@ -169,7 +201,7 @@ interface GameState {
    * total, so the board ranked them below where they had actually finished.
    * This tally is not capped by round count, only by age.
    */
-  daily: DailyPoints;
+  daily: Daily;
   /**
    * Trophies earned, as id to the moment they were earned. Write-once: a
    * trophy is banked here as its round is scored, so it survives that round
@@ -292,7 +324,10 @@ export const useGame = create<GameState>()(
         const now = Date.now();
         if (!dailyAvailable(get().lastDailyAt, now)) return false;
         get().credit('daily', DAILY_TOKENS);
-        set({ lastDailyAt: now });
+        set((st) => ({
+          lastDailyAt: now,
+          daily: addDaily(st.daily, { earned: DAILY_TOKENS }, now),
+        }));
         return true;
       },
 
@@ -326,7 +361,7 @@ export const useGame = create<GameState>()(
           // ended on a wrong answer starts the next one from zero.
           streak: bestStreak,
           rounds: [result, ...s.rounds].slice(0, ROUND_HISTORY),
-          daily: addDaily(s.daily, points),
+          daily: addDaily(s.daily, { points, earned }),
           trophies: bank(s.trophies, earnedByRound(result), result.at),
           career: {
             rounds: s.career.rounds + 1,
@@ -365,7 +400,7 @@ export const useGame = create<GameState>()(
     {
       name: 'gargari-quiz/v1',
       storage: createJSONStorage(() => storage),
-      version: 4,
+      version: 5,
       migrate: (persisted, from) => {
         const state = persisted as GameState;
 
@@ -378,9 +413,13 @@ export const useGame = create<GameState>()(
         // the board steady across the upgrade; those rounds are all that was
         // ever counted anyway, so nothing is lost that was not lost already.
         if (from < 2) {
-          state.daily = (state.rounds ?? []).reduce<DailyPoints>((acc, r) => {
+          state.daily = (state.rounds ?? []).reduce<Daily>((acc, r) => {
             const day = String(startOfDay(r.at));
-            acc[day] = (acc[day] ?? 0) + r.points;
+            const so_far = acc[day] ?? NO_DAY;
+            acc[day] = {
+              points: so_far.points + r.points,
+              earned: so_far.earned + r.earned,
+            };
             return acc;
           }, {});
         }
@@ -410,6 +449,18 @@ export const useGame = create<GameState>()(
             }),
             NO_CAREER,
           );
+        }
+
+        // v4's tally held a bare points number per day. The tokens half was
+        // read out of the ledger instead, and could not be recovered from it
+        // now, so past days start at zero earned rather than guessing.
+        if (from < 5) {
+          state.daily = Object.entries(
+            (state.daily ?? {}) as unknown as Record<string, number | DayTotals>,
+          ).reduce<Daily>((acc, [at, day]) => {
+            acc[at] = typeof day === 'number' ? { points: day, earned: 0 } : day;
+            return acc;
+          }, {});
         }
 
         return state;
@@ -446,14 +497,9 @@ export function useHydrated(timeoutMs = 1500) {
   return hydrated;
 }
 
-/** Tokens credited in the last seven days — the wallet's "earned this week". */
+/** Tokens won this week — the wallet's "earned this week". */
 export function useWeeklyEarned() {
-  return useGame((s) => {
-    const since = Date.now() - 7 * 24 * 3600 * 1000;
-    return s.ledger
-      .filter((t) => t.at >= since && t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0);
-  });
+  return useGame((s) => earnedSince(s.daily, startOfDays(WEEK_DAYS)));
 }
 
 /**
