@@ -37,13 +37,14 @@ export default function ProfileScreen() {
   const setLocale = useSetLocale();
 
   const roundHistory = useGame((s) => s.rounds);
+  const trophies = useGame((s) => s.trophies);
   const tokens = useGame((s) => s.tokens);
   const rounds = roundHistory.length;
   const streak = useGame((s) => s.streak);
 
   const shelf = useMemo(
-    () => sortForShelf(achievements({ rounds: roundHistory, tokens })),
-    [roundHistory, tokens],
+    () => sortForShelf(achievements({ rounds: roundHistory, tokens, awarded: trophies })),
+    [roundHistory, tokens, trophies],
   );
   const locked = shelf.filter((a) => !a.earned).length;
   const recent = roundHistory.slice(0, RECENT_ROUNDS);

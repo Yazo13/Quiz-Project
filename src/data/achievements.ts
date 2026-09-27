@@ -1,4 +1,5 @@
-import { didWin, type RoundResult } from '../store/game.ts';
+import { didWin } from '../lib/score.ts';
+import type { RoundResult } from '../lib/score.ts';
 
 /**
  * The trophy shelf, earned rather than written down.
@@ -24,6 +25,16 @@ export type AchievementId =
 export interface Progress {
   rounds: RoundResult[];
   tokens: number;
+  /**
+   * Trophies already banked, as id to the moment it was earned.
+   *
+   * Without this the shelf was only ever as long as the round history, and
+   * that history keeps the last thirty rounds. A perfect round thirty-one
+   * rounds ago had no record left, so the trophy for it quietly came back off
+   * the shelf — and "First round" kept re-dating itself to whatever the
+   * oldest surviving round was.
+   */
+  awarded?: Record<string, number>;
 }
 
 export interface Achievement {
@@ -47,7 +58,34 @@ const HOARD_TOKENS = 5000;
 /** Mean answer time that counts as quick, in ms. Half the budget. */
 const QUICK_MS = 2500;
 
-export function achievements({ rounds, tokens }: Progress): Achievement[] {
+/**
+ * The trophies a single round earns on its own.
+ *
+ * Called as the round is scored, which is the only moment every round is
+ * certain to be seen. The remaining two are read from live totals — the token
+ * hoard from the balance, and the regular from the history's own length — so
+ * they cannot be lost the way these could.
+ */
+export function earnedByRound(r: RoundResult): AchievementId[] {
+  const ids: AchievementId[] = ['firstRound'];
+  const won = didWin(r.correct, r.total);
+  if (won) ids.push('firstWin');
+  if (r.total > 0 && r.correct === r.total) ids.push('perfect');
+  if (r.bestStreak >= 10) ids.push('streak10');
+  if (won && r.avgMs > 0 && r.avgMs < QUICK_MS) ids.push('quickDraw');
+  return ids;
+}
+
+export function achievements({ rounds, tokens, awarded = {} }: Progress): Achievement[] {
+  /**
+   * Banked first, then whatever the surviving rounds still show. A trophy the
+   * record knows about keeps the date it was actually earned on.
+   */
+  const held = (id: AchievementId, found?: RoundResult) => ({
+    earned: awarded[id] !== undefined || !!found,
+    at: awarded[id] ?? found?.at,
+  });
+
   const first = earliest(rounds, () => true);
   const win = earliest(rounds, (r) => didWin(r.correct, r.total));
   const perfect = earliest(rounds, (r) => r.total > 0 && r.correct === r.total);
@@ -62,16 +100,15 @@ export function achievements({ rounds, tokens }: Progress): Achievement[] {
   const bestStreak = rounds.reduce((m, r) => Math.max(m, r.bestStreak), 0);
 
   return [
-    { id: 'firstRound', earned: !!first, at: first?.at, progress: null },
-    { id: 'firstWin', earned: !!win, at: win?.at, progress: null },
-    { id: 'perfect', earned: !!perfect, at: perfect?.at, progress: null },
+    { id: 'firstRound', ...held('firstRound', first), progress: null },
+    { id: 'firstWin', ...held('firstWin', win), progress: null },
+    { id: 'perfect', ...held('perfect', perfect), progress: null },
     {
       id: 'streak10',
-      earned: !!streak,
-      at: streak?.at,
+      ...held('streak10', streak),
       progress: { have: Math.min(bestStreak, 10), need: 10 },
     },
-    { id: 'quickDraw', earned: !!quick, at: quick?.at, progress: null },
+    { id: 'quickDraw', ...held('quickDraw', quick), progress: null },
     {
       id: 'regular',
       earned: rounds.length >= REGULAR_ROUNDS,

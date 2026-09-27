@@ -3,10 +3,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+// Explicit extensions: node:test imports this module directly and Node's ESM
+// loader resolves the real filename.
+import { earnedByRound } from '../data/achievements.ts';
 import type { CategoryKey } from '../data/questions';
-// Explicit extension: node:test imports this module directly and Node's
-// ESM loader resolves the real filename. lib/time has no imports of its own.
+import { MIN_WIN_LENGTH, WIN_SHARE, didWin } from '../lib/score.ts';
+import type { RoundResult } from '../lib/score.ts';
 import { startOfDay, startOfDays } from '../lib/time.ts';
+
+// The store stays the one import every screen reaches for, so what moved out
+// of it is passed straight back through.
+export { MIN_WIN_LENGTH, WIN_SHARE, didWin } from '../lib/score.ts';
+export type { RoundResult } from '../lib/score.ts';
 
 /**
  * The single source of truth for everything the player owns or has done.
@@ -38,50 +46,9 @@ export interface Tx {
   detail?: string;
 }
 
-export interface RoundResult {
-  id: string;
-  at: number;
-  correct: number;
-  total: number;
-  bestStreak: number;
-  points: number;
-  /** Tokens credited for the round. */
-  earned: number;
-  /** Mean answer time in ms; unanswered questions count as the full limit. */
-  avgMs: number;
-  /**
-   * The category the round was played on, or undefined for a mixed round.
-   * Kept so "play again" can deal the same subject again.
-   */
-  subject?: CategoryKey;
-}
-
 /** A new player starts with enough to enter a tournament and feel the economy. */
 const STARTING_TOKENS = 1248;
 const STARTING_POINTS = 6422;
-
-/**
- * Share of a round that has to be right to win it.
- *
- * It used to be a flat six correct, which assumed every round was ten
- * questions long. Since leaving early became possible, rounds can be any
- * length — and a seven-question round answered five right, which is better
- * than the bar, was still recorded as a loss because five is less than six.
- */
-export const WIN_SHARE = 0.6;
-/**
- * Rounds shorter than this are recorded but never count as wins.
- *
- * Without a floor, quitting after one correct answer would be a perfect score
- * and pay a win — entry fee back plus the streak kicker, for one question.
- */
-export const MIN_WIN_LENGTH = 5;
-
-/** Whether a round of this length and score counts as won. */
-export function didWin(correct: number, total: number): boolean {
-  if (total < MIN_WIN_LENGTH) return false;
-  return correct / total >= WIN_SHARE;
-}
 
 /** Cost of one tournament seat, and of a retry after losing. */
 export const ENTRY_COST = 50;
@@ -137,6 +104,19 @@ function addDaily(daily: DailyPoints, points: number, now = Date.now()): DailyPo
   return next;
 }
 
+/**
+ * Records trophies not already held, keeping the first date for each.
+ *
+ * Exported so the write-once rule can be pinned down with explicit
+ * timestamps; two rounds scored in the same millisecond would otherwise make
+ * the test vacuous.
+ */
+export function bank(held: Record<string, number>, ids: string[], at: number) {
+  const next = { ...held };
+  for (const id of ids) if (next[id] === undefined) next[id] = at;
+  return next;
+}
+
 const POINTS_PER_CORRECT = 120;
 /** Won rounds pay per correct answer plus a streak kicker; losses pay a floor. */
 const TOKENS_PER_CORRECT = 50;
@@ -171,6 +151,12 @@ interface GameState {
    * This tally is not capped by round count, only by age.
    */
   daily: DailyPoints;
+  /**
+   * Trophies earned, as id to the moment they were earned. Write-once: a
+   * trophy is banked here as its round is scored, so it survives that round
+   * dropping out of the capped history. Nothing but a reset removes one.
+   */
+  trophies: Record<string, number>;
   /** Tournament ids the player has paid into. */
   joined: string[];
   /** When the daily bonus was last taken. Null until the first claim. */
@@ -246,6 +232,7 @@ export const useGame = create<GameState>()(
       ledger: [],
       rounds: [],
       daily: {},
+      trophies: {},
       joined: [],
       lastDailyAt: null,
       haptics: true,
@@ -319,6 +306,7 @@ export const useGame = create<GameState>()(
           streak: bestStreak,
           rounds: [result, ...s.rounds].slice(0, ROUND_HISTORY),
           daily: addDaily(s.daily, points),
+          trophies: bank(s.trophies, earnedByRound(result), result.at),
           ledger: [
             {
               id: nextId(),
@@ -342,6 +330,7 @@ export const useGame = create<GameState>()(
           ledger: [],
           rounds: [],
           daily: {},
+          trophies: {},
           joined: [],
           lastDailyAt: null,
         }),
@@ -349,7 +338,7 @@ export const useGame = create<GameState>()(
     {
       name: 'gargari-quiz/v1',
       storage: createJSONStorage(() => storage),
-      version: 2,
+      version: 3,
       migrate: (persisted, from) => {
         const state = persisted as GameState;
 
@@ -367,6 +356,19 @@ export const useGame = create<GameState>()(
             acc[day] = (acc[day] ?? 0) + r.points;
             return acc;
           }, {});
+        }
+
+        // v2 had no trophy record, so the shelf was only as long as the
+        // surviving history. Replaying that history here recovers everything
+        // still visible; anything already pruned was gone before this ran.
+        if (from < 3) {
+          state.trophies = (state.rounds ?? [])
+            .slice()
+            .reverse()
+            .reduce<Record<string, number>>(
+              (held, r) => bank(held, earnedByRound(r), r.at),
+              {},
+            );
         }
 
         return state;

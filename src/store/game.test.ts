@@ -11,6 +11,7 @@ import {
   didWin,
   MIN_WIN_LENGTH,
   WIN_SHARE,
+  bank,
   pointsSince,
   roundPoints,
   roundTokens,
@@ -214,6 +215,49 @@ describe('pointsSince', () => {
   });
 });
 
+describe('the trophy record', () => {
+  const played = (over: { correct?: number; bestStreak?: number; avgMs?: number } = {}) =>
+    state().finishRound({
+      correct: over.correct ?? 7,
+      total: 10,
+      bestStreak: over.bestStreak ?? 0,
+      avgMs: over.avgMs ?? 4000,
+    });
+
+  it('banks what a round earns as it is scored', () => {
+    const r = played({ correct: 10 });
+    assert.deepEqual(Object.keys(state().trophies).sort(), [
+      'firstRound',
+      'firstWin',
+      'perfect',
+    ]);
+    assert.equal(state().trophies.perfect, r.at);
+  });
+
+  it('survives the round that earned it dropping out of the history', () => {
+    // The bug: a trophy was only ever as durable as the round behind it.
+    const perfect = played({ correct: 10 });
+    for (let i = 0; i < 35; i++) played({ correct: 7 });
+
+    assert.ok(
+      !state().rounds.some((r) => r.id === perfect.id),
+      'the perfect round is gone from the history',
+    );
+    assert.equal(state().trophies.perfect, perfect.at, 'the trophy is not');
+  });
+
+  it('records nothing a round did not earn', () => {
+    played({ correct: 2 });
+    assert.deepEqual(Object.keys(state().trophies), ['firstRound']);
+  });
+
+  it('is cleared by a reset', () => {
+    played({ correct: 10 });
+    state().resetProgress();
+    assert.deepEqual(state().trophies, {});
+  });
+});
+
 describe('the daily bonus', () => {
   it('pays the first time it is asked for', () => {
     assert.equal(state().claimDaily(), true);
@@ -284,5 +328,32 @@ describe('reset', () => {
     assert.deepEqual(state().rounds, []);
     assert.deepEqual(state().ledger, []);
     assert.deepEqual(state().joined, []);
+  });
+});
+
+describe('bank', () => {
+  it('records a trophy with the moment it was earned', () => {
+    assert.deepEqual(bank({}, ['perfect'], 100), { perfect: 100 });
+  });
+
+  it('keeps the first date when the same trophy comes round again', () => {
+    assert.deepEqual(bank({ perfect: 100 }, ['perfect'], 900), { perfect: 100 });
+  });
+
+  it('adds alongside what is already held', () => {
+    assert.deepEqual(bank({ perfect: 100 }, ['firstWin'], 900), {
+      perfect: 100,
+      firstWin: 900,
+    });
+  });
+
+  it('leaves the record it was given alone', () => {
+    const held = { perfect: 100 };
+    bank(held, ['firstWin'], 900);
+    assert.deepEqual(held, { perfect: 100 });
+  });
+
+  it('does nothing with an empty list', () => {
+    assert.deepEqual(bank({ perfect: 100 }, [], 900), { perfect: 100 });
   });
 });
