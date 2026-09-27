@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Share, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { Tactile, TactileLabel, TactileSurface } from '../src/components/Tactile
 import { ROUND_LENGTH } from '../src/data/questions';
 import { useReducedMotion } from '../src/hooks/useReducedMotion';
 import { useT } from '../src/i18n';
-import { ENTRY_COST, didWin, useGame } from '../src/store/game';
+import { ENTRY_COST, didWin, roundPoints, useGame } from '../src/store/game';
 import { color, radius, screenPad } from '../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../src/theme/type';
 
@@ -27,9 +27,25 @@ export default function ResultScreen() {
   const spend = useGame((s) => s.spend);
   const [short, setShort] = useState(false);
 
-  // A real round arrives by id. The profile's two preview buttons pass an
-  // outcome instead, so the screen can be seen without playing.
+  // A real round arrives by id. The profile's development-only preview
+  // buttons pass an outcome instead, so the screen can be seen without
+  // playing one.
   const round = params.round ? rounds.find((r) => r.id === params.round) : undefined;
+  const preview = __DEV__ && !round && !!params.outcome;
+
+  /**
+   * A round id that matches nothing is not a result.
+   *
+   * The invented figures below exist for the preview, and they used to stand
+   * in for a missing round as well: a player arriving without a round — a
+   * stale link, a round pruned from the history — was shown nine correct out
+   * of ten and four hundred and eighty tokens they had not won, and a Claim
+   * button under it. Better to admit there is nothing to show.
+   */
+  useEffect(() => {
+    if (!round && !preview) router.replace('/');
+  }, [round, preview, router]);
+
   const won = round ? didWin(round.correct, round.total) : params.outcome !== 'loss';
 
   const correct = round?.correct ?? (won ? 9 : 4);
@@ -49,7 +65,7 @@ export default function ResultScreen() {
    * error, so the rejection is swallowed.
    */
   const share = () => {
-    const points = round?.points ?? correct * 120;
+    const points = round?.points ?? roundPoints(correct);
     Share.share({
       message: t.result.shareMessage(correct, total, points),
     }).catch(() => {});
