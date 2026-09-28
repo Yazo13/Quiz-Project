@@ -1,23 +1,18 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
+import { BattleList } from '../../src/components/BattleList';
 import { EstateScene } from '../../src/components/EstateScene';
 import { GlassCard } from '../../src/components/GlassCard';
 import { MeshBackground } from '../../src/components/MeshBackground';
-import {
-  Avatar,
-  Chip,
-  Coin,
-  CompassMark,
-  Fire,
-  LiveDot,
-} from '../../src/components/Primitives';
+import { Avatar, Chip, Coin, CompassMark, LiveDot } from '../../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { TokenBalance } from '../../src/components/TokenBalance';
-import { presenceAt, seedFor, usePresenceClock } from '../../src/data/presence';
+import { type Battle, quizHref } from '../../src/data/battles';
+import { presenceAt, usePresenceClock } from '../../src/data/presence';
 import { PLAYER_INITIALS, PLAYER_NAME } from '../../src/data/rivals';
 import { GRAND_ID, tournamentAt } from '../../src/data/tournament';
 import { useCountdownTo } from '../../src/hooks/useCountdown';
@@ -37,27 +32,6 @@ const categories = [
   { id: 'experience', glyph: '★', tint: color.sky, prizes: 5 },
 ] as const;
 
-/**
- * `category` is the prize on offer, which is what the scroller filters by.
- * `subject` is what the round actually asks about — a separate thing, and
- * absent on the cash battles, which pay out in tokens rather than belonging
- * to a topic. Those play the whole bank.
- */
-const battles = [
-  { key: 'geography', category: 'travel', subject: 'travel', players: 1284, prize: '50K', hot: true },
-  { key: 'tech', category: 'tech', subject: 'tech', players: 642, prize: '20K', hot: false },
-  { key: 'culture', category: 'experience', subject: 'experience', players: 2103, prize: '100K', hot: true },
-  { key: 'cellar', category: 'travel', subject: 'culture', players: 418, prize: '15K', hot: false },
-  { key: 'jackpot', category: 'cash', players: 3960, prize: '250K', hot: true },
-  { key: 'nightOwl', category: 'cash', players: 704, prize: '40K', hot: false },
-] as const;
-
-type Battle = (typeof battles)[number];
-
-/** Only battles with a subject narrow the round; the rest play everything. */
-const quizHref = (battle: Battle): Href =>
-  'subject' in battle ? `/quiz?subject=${battle.subject}` : '/quiz';
-
 export default function ArenaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -72,7 +46,6 @@ export default function ArenaScreen() {
   const [category, setCategory] = useState<string | null>(null);
   const t = useT();
 
-  const shown = category ? battles.filter((b) => b.category === category) : battles;
 
   // Simulated until there is a presence endpoint — see src/data/presence.ts.
   const now = usePresenceClock();
@@ -414,95 +387,7 @@ export default function ArenaScreen() {
           </ScrollView>
         </View>
 
-        {/* Live battles */}
-        <View style={{ paddingHorizontal: screenPad, paddingTop: 24 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              marginBottom: 10,
-            }}
-          >
-            <Display size={22}>{t.arena.battlesToday}</Display>
-            <Chip label={t.arena.roundLength} background={color.ink} foreground={color.white} />
-          </View>
-
-          <View style={{ gap: 10 }}>
-            {shown.length === 0 && (
-              <View
-                style={{
-                  borderWidth: border.thin,
-                  borderStyle: 'dashed',
-                  borderColor: color.lineStrong,
-                  paddingVertical: 22,
-                  alignItems: 'center',
-                }}
-              >
-                <UI size={13} weight="semibold" color={color.ink3}>
-                  {t.arena.noBattles}
-                </UI>
-              </View>
-            )}
-            {shown.map((b, i) => (
-              <Pressable
-                key={b.key}
-                accessibilityRole="button"
-                accessibilityLabel={`${t.arena.battles[b.key]} · ${t.arena.playing(
-                  presenceAt(b.players, seedFor(b.key), now),
-                )}`}
-                onPress={() => enterBattle(b)}
-              >
-                <View
-                  style={{
-                    borderWidth: border.medium,
-                    borderColor: color.lineStrong,
-                    borderRadius: i % 2 === 0 ? radius.sharp : radius.soft,
-                    backgroundColor: i === 0 ? color.goldSoft : color.surface,
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderWidth: border.thin,
-                      borderColor: color.lineStrong,
-                      backgroundColor: i === 0 ? color.coral : i === 1 ? color.forest : color.ink,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <CompassMark size={20} fill={color.white} />
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <UI size={15} weight="bold" numberOfLines={1}>
-                      {t.arena.battles[b.key]}
-                    </UI>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                      <UI size={11} weight="semibold" color={color.ink3}>
-                        {t.arena.playing(presenceAt(b.players, seedFor(b.key), now))}
-                      </UI>
-                      {b.hot && <Fire size={12} />}
-                    </View>
-                  </View>
-
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Display size={22} color={color.forest}>
-                      {b.prize}
-                    </Display>
-                    <Eyebrow size={9}>{t.arena.pool}</Eyebrow>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+        <BattleList category={category} now={now} onEnter={enterBattle} />
       </ScrollView>
     </View>
   );
