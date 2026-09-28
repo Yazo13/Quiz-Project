@@ -52,11 +52,12 @@ Rules that give it the signature look:
 
 ## Screens
 
-1. **Arena** (home) — Grand Tournament card with a countdown that knows when it has run out, the daily bonus while it is unclaimed, a category scroller that filters the battle list, and the token balance.
+1. **Arena** (home) — Grand Tournament card counting down to the next sitting, the daily bonus while it is unclaimed, a category scroller that filters the battle list, and the token balance.
 2. **Quiz** — 5-second depleting bar, the question's own media frame, four answer buttons dealt in a fresh order, a 50/50 power-up, and a way out of the round.
 3. **Leaderboard** — your rank banner, podium, and a board that reorders by today, this week, all-time or friends.
 4. **Wallet & Store** — balance hero, token packs that take two taps to buy, activity log built from the ledger.
-5. **Victory** / 6. **Defeat** — end states with animated trophy and cracked compass, and a share sheet on a win.
+5. **Profile** — your record: identity card, the trophy shelf, recent rounds, language and vibration switches, and the reset.
+6. **Victory** / 7. **Defeat** — end states with animated trophy and cracked compass, and a share sheet on a win.
 
 A seventh screen exists that nobody should see: an error boundary, exported
 from the root layout, which catches a thrown screen instead of letting the app
@@ -64,10 +65,16 @@ go white.
 
 ## The round
 
-A round is ten questions from a bank of twenty, dealt without replacement, and
-each question's four answers are reordered as it is dealt. Both matter for the
-same reason: the bank is small enough that a regular player meets a question
-again, and answering from a remembered position is not answering the question.
+A round is ten questions dealt without replacement from a bank of forty — ten
+in each of travel, culture, tech and experience — and each question's four
+answers are reordered as it is dealt. Both matter for the same reason: the bank
+is small enough that a regular player meets a question again, and answering
+from a remembered position is not answering the question.
+
+Entering from a battle row narrows the bank to that battle's subject, and the
+round remembers which one it was, so playing again deals the same subject
+rather than dropping back to everything. The cash battles have no subject —
+their category is the prize, not a topic — and play the whole bank.
 
 Five seconds per question, and the clock is wall-clock rather than a
 countdown, so leaving the app does not pause it. Backgrounding the app to think
@@ -85,11 +92,29 @@ caption announces an ID, so the picture behind it has to differ.
 Finishing rounds earns the trophy shelf — seven achievements, each a test
 against stored progress rather than a line of copy. Locked ones stay visible
 with what they take and how far along you are. The last five rounds are listed
-underneath with score, streak and what they paid.
+underneath with their subject, score, streak and what they paid.
+
+A trophy is banked the moment the round earns it. The round history is capped,
+so deriving the shelf from it meant a perfect round eventually scrolled out of
+reach and took its trophy with it. Rounds played, questions seen and answers
+got right are counted the same way, as running totals — the profile's round
+count used to be the length of that capped history and stopped at thirty.
+
+Points and tokens are tallied per local day as well, which is what the
+leaderboard's today and weekly boards read, and what the wallet's "earned this
+week" reads. Both used to be summed out of capped lists and came out low for
+anyone playing regularly.
 
 A daily bonus pays once per local calendar day, not once per twenty-four
 hours: claiming at 23:00 and again at 00:30 is two days to the player, and an
 elapsed-time rule would refuse that while allowing two claims in an afternoon.
+Every window in the app works that way — the leaderboard's day and week, and
+the wallet's week, are calendar boundaries rather than rolling hour counts.
+
+The featured tournament runs on a schedule derived from the clock, at 20:00
+local, open for an hour. A countdown counting a fixed duration down from mount
+would restart every time the screen was opened, and freeze whenever the app was
+backgrounded; counting towards a deadline survives both.
 
 ## Accessibility
 
@@ -108,8 +133,8 @@ progress. The button says what the second press will do and forgets after four
 seconds.
 
 The design animates constantly — the mesh field, the balance halo, the live
-dot, the streak flame, the end-state confetti. All of it stands down when the
-OS reports reduce-motion, parking at a resting value rather than snapping to
+dot, the streak flame, the end-state confetti and the trophy and compass marks
+themselves. All of it stands down when the OS reports reduce-motion, parking at a resting value rather than snapping to
 zero so it does not look like something failed to load. The quiz timer bar is
 exempt: it is the clock, not decoration.
 
@@ -143,18 +168,28 @@ npm run typecheck
 npm test
 ```
 
-Sixty-seven cases covering the parts with rules rather than layout: the token
-economy, the question bank and its shuffling, achievement boundaries, the
-rival roster, number formatting, the clock formatter, and a parity suite that
-checks the two locale tables against each other. They run under `node --test`
-with type stripping, no test framework installed.
+A hundred and fifty-four cases covering the parts with rules rather than
+layout: the token economy, the per-day and career tallies, the question bank
+and its shuffling, achievement boundaries, the battle list, the tournament
+schedule, the pack shelf, the rival roster, number and date formatting, and a
+parity suite that checks the two locale tables against each other. They run
+under `node --test` with type stripping, no test framework installed.
+
+`noUnusedLocals` and `noUnusedParameters` are on, so dead imports fail the
+typecheck rather than accumulating.
 
 ## State
 
 One zustand store (`src/store/game.ts`), persisted to AsyncStorage: token
-balance, points, streak, a ledger of every charge and credit, round history and
-which tournaments have been paid into. Every screen reads from it, so the
-balance in the arena header and the balance in the wallet cannot disagree.
+balance, points, streak, a ledger of every charge and credit, the last thirty
+rounds, per-day totals, banked trophies, career totals, and which tournaments
+have been paid into. Every screen reads from it, so the balance in the arena
+header and the balance in the wallet cannot disagree.
+
+The ledger and the round history are display lists and are capped. Anything a
+figure is computed from — the day tally, the trophies, the career totals — is
+kept separately and is not, because a capped list makes a quiet, plausible,
+wrong answer.
 
 Its shape is deliberately what a `GET /me` would return, so the store becomes
 the response type when there is a server.
