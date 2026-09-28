@@ -7,7 +7,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 // loader resolves the real filename.
 import { earnedByRound } from '../data/achievements.ts';
 import type { CategoryKey } from '../data/questions';
-import { MIN_WIN_LENGTH, WIN_SHARE, didWin } from '../lib/score.ts';
+import { didWin } from '../lib/score.ts';
 import type { RoundResult } from '../lib/score.ts';
 import { startOfDay, startOfDays } from '../lib/time.ts';
 

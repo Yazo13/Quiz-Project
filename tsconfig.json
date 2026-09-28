@@ -2,6 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // Five unused imports had drifted in before this was turned on, two of
+    // them from a module that only re-exports the names.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     // The node:test suites import with an explicit .ts extension, which is
     // what Node's ESM loader resolves under --experimental-strip-types.
     "allowImportingTsExtensions": true,

@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { PackGrid } from '../../src/components/PackGrid';
-import { worthInDollars } from '../../src/data/packs';
 import { Coin } from '../../src/components/Primitives';
 import { Segmented } from '../../src/components/Segmented';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
+import { worthInDollars } from '../../src/data/packs';
 import { useT, whenLabel } from '../../src/i18n';
 import { succeeded } from '../../src/lib/feedback';
 import { group } from '../../src/lib/number';
