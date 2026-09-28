@@ -88,7 +88,17 @@ export function TabBar({ state, navigation }: TabBarProps) {
                   navigation.navigate(route.name);
                 }
               }}
-              style={{ flex: 1, alignItems: 'center', gap: 2 }}
+              // Stretched and centred rather than sized by its glyph and
+              // label: the row centres its children, so the button used to be
+              // about 38pt of the bar's 64 and the rest of the bar swallowed
+              // taps without doing anything.
+              style={{
+                flex: 1,
+                alignSelf: 'stretch',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+              }}
             >
               {/* The glyph repeats the label below it; announcing both would
                   just read the tab name twice. */}
