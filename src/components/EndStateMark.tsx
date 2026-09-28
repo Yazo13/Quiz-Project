@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { color, font } from '../theme/tokens';
 
 const SIZE = 168;
@@ -19,17 +20,25 @@ const SIZE = 168;
  * as if catching the light. (The CSS original is scaleIn + shine.)
  */
 export function TrophyMark() {
+  const reduced = useReducedMotion();
   const enter = useSharedValue(0.3);
   const rock = useSharedValue(0);
 
   useEffect(() => {
+    // The entrance is a one-off and carries the arrival, so it stays; the
+    // endless rocking is the part that has to stand down.
+    if (reduced) {
+      enter.value = 1;
+      rock.value = 0.5;
+      return;
+    }
     enter.value = withSpring(1, { damping: 8, stiffness: 140, mass: 0.8 });
     rock.value = withRepeat(
       withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     );
-  }, [enter, rock]);
+  }, [enter, rock, reduced]);
 
   const style = useAnimatedStyle(() => ({
     transform: [{ scale: enter.value }, { rotate: `${-4 + rock.value * 8}deg` }],
@@ -84,10 +93,16 @@ export function TrophyMark() {
  * wobbles, needle stuck. Softer than a hard failure state by design.
  */
 export function BrokenCompassMark() {
+  const reduced = useReducedMotion();
   const shake = useSharedValue(0);
   const wobble = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      shake.value = 0;
+      wobble.value = 0.5;
+      return;
+    }
     shake.value = withSequence(
       withTiming(-3, { duration: 60 }),
       withTiming(3, { duration: 60 }),
@@ -99,7 +114,7 @@ export function BrokenCompassMark() {
       -1,
       true,
     );
-  }, [shake, wobble]);
+  }, [shake, wobble, reduced]);
 
   const style = useAnimatedStyle(() => ({
     transform: [
