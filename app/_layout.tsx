@@ -81,7 +81,13 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="quiz" options={{ animation: 'fade' }} />
+            {/* No swipe back out of a round: leaving has to go through the
+                quit button, which banks the questions already answered. A
+                swipe would spend the entry fee and record nothing. */}
+            <Stack.Screen
+              name="quiz"
+              options={{ animation: 'fade', gestureEnabled: false }}
+            />
             <Stack.Screen
               name="result"
               options={{ animation: 'fade', gestureEnabled: false }}

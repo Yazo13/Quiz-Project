@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, AppState, Pressable, View } from 'react-native';
+import { AccessibilityInfo, AppState, BackHandler, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -257,6 +257,21 @@ export default function QuizScreen() {
     });
     router.replace(`/result?round=${result.id}`);
   };
+
+  /**
+   * Android's back button leaves the same way the quit button does.
+   *
+   * Disabling the iOS swipe is a route option, but hardware back is not — it
+   * pops the screen on its own, which spent the entry fee and recorded
+   * nothing. Routing it through quit banks what was answered.
+   */
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      quit();
+      return true;
+    });
+    return () => sub.remove();
+  });
 
   // Strikes out two of the three wrong answers, leaving a coin flip.
   const useFiftyFifty = () => {
