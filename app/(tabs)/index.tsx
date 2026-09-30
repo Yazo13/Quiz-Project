@@ -335,6 +335,8 @@ export default function ArenaScreen() {
               accessibilityLabel={category ? t.arena.seeAllActive : t.arena.seeAll}
               onPress={() => setCategory(null)}
               disabled={!category}
+              // Twelve-point text is the only way back to the unfiltered list.
+              hitSlop={{ top: 14, bottom: 14, left: 10, right: 10 }}
             >
               <UI size={12} weight="bold" color={category ? color.coral : color.ink3}>
                 {category ? t.arena.seeAllActive : t.arena.seeAll}

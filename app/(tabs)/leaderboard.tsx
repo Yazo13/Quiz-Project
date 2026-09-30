@@ -125,6 +125,9 @@ export default function LeaderboardScreen() {
                 accessibilityLabel={t.leaderboard.filters[f]}
                 accessibilityState={{ selected: active }}
                 onPress={() => setFilter(f)}
+                // A chip is about 24pt tall. These four switch the whole
+                // board, so they get a target a thumb can find.
+                hitSlop={{ top: 10, bottom: 10, left: 4, right: 4 }}
               >
                 <Chip
                   label={t.leaderboard.filters[f]}
