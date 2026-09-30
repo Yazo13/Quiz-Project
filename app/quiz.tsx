@@ -15,7 +15,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { QuestionScene } from '../src/components/QuestionScene';
 import { MeshBackground } from '../src/components/MeshBackground';
 import { Avatar, Chip, Coin, Fire } from '../src/components/Primitives';
-import { Tactile } from '../src/components/Tactile';
+import { AnswerGrid } from '../src/components/AnswerGrid';
 import { TIME_LIMIT, asCategory, bankFor, buildRound } from '../src/data/questions';
 import { presenceAt, seedFor, usePresenceClock } from '../src/data/presence';
 import { rivals } from '../src/data/rivals';
@@ -438,90 +438,14 @@ export default function QuizScreen() {
           </View>
         </View>
 
-        {/* Answers */}
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 10,
-            marginTop: 14 + depth,
-            marginBottom: 18,
-          }}
-        >
-          {question.answers[locale].map((answer, i) => {
-            const letter = ['A', 'B', 'C', 'D'][i];
-            const isCorrect = revealed && i === question.correct;
-            const isWrong = revealed && selected === i && i !== question.correct;
-            const isStruck = struck.includes(i);
-
-            let bg: string = color.surface;
-            let fg: string = color.ink;
-            let badge: string = color.bgWarm;
-            let badgeFg: string = color.ink;
-
-            if (isCorrect) {
-              bg = color.forest;
-              fg = color.white;
-              badge = color.gold;
-            } else if (isWrong) {
-              bg = color.coral;
-              fg = color.white;
-              badge = color.ink;
-              badgeFg = color.white;
-            } else if (revealed) {
-              bg = color.bgCream;
-              fg = color.ink3;
-            }
-
-            return (
-              <View key={answer} style={{ width: '48%', opacity: isStruck ? 0.3 : 1 }}>
-                <Tactile
-                  height={86}
-                  // A and D sharp, B and C soft — the alternating radius rule.
-                  radius={i === 0 || i === 3 ? radius.sharp : radius.soft}
-                  background={bg}
-                  disabled={revealed || isStruck}
-                  silent
-                  // The letter badge and the answer read as two separate
-                  // strings otherwise, and a struck-out option looks
-                  // identical to a live one without the state.
-                  accessibilityLabel={`${letter}. ${answer}`}
-                  selected={selected === i}
-                  onPress={() => choose(i)}
-                >
-                  <View
-                    style={{
-                      flex: 1,
-                      width: '100%',
-                      padding: 12,
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 26,
-                        height: 26,
-                        backgroundColor: badge,
-                        borderWidth: border.thin,
-                        borderColor: color.lineStrong,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Display size={18} color={badgeFg}>
-                        {letter}
-                      </Display>
-                    </View>
-                    <UI size={17} weight="bold" color={fg}>
-                      {answer}
-                    </UI>
-                  </View>
-                </Tactile>
-              </View>
-            );
-          })}
-        </View>
+        <AnswerGrid
+          answers={question.answers[locale]}
+          correct={question.correct}
+          selected={selected}
+          revealed={revealed}
+          struck={struck}
+          onChoose={choose}
+        />
 
         {/* Power-up row before the answer, verdict after it */}
         {!revealed ? (
