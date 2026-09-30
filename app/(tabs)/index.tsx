@@ -11,8 +11,8 @@ import { MeshBackground } from '../../src/components/MeshBackground';
 import { Avatar, Chip, Coin, CompassMark, LiveDot } from '../../src/components/Primitives';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { TokenBalance } from '../../src/components/TokenBalance';
-import { type Battle, quizHref } from '../../src/data/battles';
-import { presenceAt, usePresenceClock } from '../../src/data/presence';
+import { type Battle, battleCount, quizHref } from '../../src/data/battles';
+import { presenceAt, seedFor, usePresenceClock } from '../../src/data/presence';
 import { PLAYER_INITIALS, PLAYER_NAME } from '../../src/data/rivals';
 import { GRAND_ID, tournamentAt } from '../../src/data/tournament';
 import { useCountdownTo } from '../../src/hooks/useCountdown';
@@ -25,12 +25,20 @@ import { Display, Eyebrow, UI } from '../../src/theme/type';
 /** Baseline for the arena-wide figure; the rest drift around their own. */
 const LIVE_BASE = 12408;
 
+/**
+ * The prize categories the scroller offers. How many battles each holds is
+ * counted from the battle list rather than written down beside it — the tile
+ * filters that list, so the two have to agree.
+ */
 const categories = [
-  { id: 'travel', glyph: '✈', tint: color.coralSoft, prizes: 12 },
-  { id: 'tech', glyph: '◉', tint: '#D9E7FF', prizes: 8 },
-  { id: 'cash', glyph: '$', tint: color.goldSoft, prizes: 0 },
-  { id: 'experience', glyph: '★', tint: color.sky, prizes: 5 },
+  { id: 'travel', glyph: '✈', tint: color.coralSoft },
+  { id: 'tech', glyph: '◉', tint: '#D9E7FF' },
+  { id: 'cash', glyph: '$', tint: color.goldSoft },
+  { id: 'experience', glyph: '★', tint: color.sky },
 ] as const;
+
+/** The featured tournament draws a bigger crowd than any single battle. */
+const GRAND_BASE = 3402;
 
 export default function ArenaScreen() {
   const router = useRouter();
@@ -236,7 +244,7 @@ export default function ArenaScreen() {
                   {started ? t.arena.started : t.arena.startsIn}
                 </Eyebrow>
                 <Eyebrow size={11} color={color.coral}>
-                  {t.arena.hot(3402)}
+                  {t.arena.hot(presenceAt(GRAND_BASE, seedFor(GRAND_ID), now))}
                 </Eyebrow>
               </View>
 
@@ -377,7 +385,11 @@ export default function ArenaScreen() {
                         color={active ? 'rgba(255,255,255,0.7)' : color.ink3}
                         style={{ marginTop: 2 }}
                       >
-                        {c.prizes === 0 ? t.arena.cashPool : t.arena.prizeCount(c.prizes)}
+                        {/* Cash is a prize type rather than a set of prizes, so it keeps
+                            its own label. */}
+                        {c.id === 'cash'
+                          ? t.arena.cashPool
+                          : t.arena.prizeCount(battleCount(c.id))}
                       </UI>
                     </View>
                   </View>

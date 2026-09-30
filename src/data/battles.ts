@@ -31,3 +31,14 @@ export function quizHref(battle: Battle): Href {
 export function battlesFor(category: string | null): readonly Battle[] {
   return category ? battles.filter((b) => b.category === category) : battles;
 }
+
+/**
+ * How many battles a prize category has on offer.
+ *
+ * The category tiles carried their own counts — twelve prizes for travel,
+ * eight for tech — while tapping travel revealed two battles. A number that
+ * disagrees with what pressing it shows is worse than no number.
+ */
+export function battleCount(category: string): number {
+  return battlesFor(category).length;
+}
