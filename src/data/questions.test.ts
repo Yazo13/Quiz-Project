@@ -68,6 +68,59 @@ describe('the question bank', () => {
   });
 });
 
+describe('the bank as content', () => {
+  // The bank is written by hand and will keep growing. These are the mistakes
+  // that get made when it does, and none of them fail loudly on their own —
+  // a repeated answer just looks like a question with three options.
+  it('never repeats an answer inside one question', () => {
+    for (const q of questions) {
+      for (const lang of ['en', 'ka'] as const) {
+        const answers = q.answers[lang];
+        assert.equal(
+          new Set(answers).size,
+          answers.length,
+          `question ${q.id} repeats an answer in ${lang}`,
+        );
+      }
+    }
+  });
+
+  it('leaves nothing blank', () => {
+    for (const q of questions) {
+      for (const lang of ['en', 'ka'] as const) {
+        assert.ok(q.prompt[lang].trim(), `question ${q.id} has no ${lang} prompt`);
+        for (const [i, answer] of q.answers[lang].entries()) {
+          assert.ok(answer.trim(), `question ${q.id} answer ${i} is blank in ${lang}`);
+        }
+      }
+    }
+  });
+
+  it('actually translates the prompts', () => {
+    // A prompt pasted into both tables is the usual way an untranslated
+    // question slips in; the i18n parity suite cannot see this one.
+    for (const q of questions) {
+      assert.notEqual(
+        q.prompt.en.trim(),
+        q.prompt.ka.trim(),
+        `question ${q.id} has the same prompt in both languages`,
+      );
+    }
+  });
+
+  it('keeps the two languages the same length, answer for answer', () => {
+    for (const q of questions) {
+      assert.equal(q.answers.en.length, q.answers.ka.length, `question ${q.id}`);
+    }
+  });
+
+  it('gives every question a category that rounds can be built from', () => {
+    for (const q of questions) {
+      assert.ok(CATEGORY_KEYS.includes(q.category), `question ${q.id}: ${q.category}`);
+    }
+  });
+});
+
 describe('buildRound', () => {
   it('deals a full round', () => {
     assert.equal(buildRound().length, ROUND_LENGTH);
