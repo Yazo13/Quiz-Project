@@ -176,6 +176,13 @@ export const en = {
     } satisfies Record<RelativeUnit, string | ((n: number) => string)>,
   },
 
+  notFound: {
+    eyebrow: 'No such place',
+    title: 'Nothing\nhere',
+    body: 'That address does not lead anywhere in the app. Nothing is lost — the arena is where it was.',
+    back: 'Back to Arena',
+  },
+
   crash: {
     eyebrow: 'Something broke',
     title: 'Off the\nmap',
