@@ -164,9 +164,22 @@ export default function LeaderboardScreen() {
                     </View>
                   )}
                 </View>
-                <UI size={13} weight="bold" style={{ marginBottom: 2 }}>
+                {/* Every row in the list below says which one is you. The
+                    podium said nothing, so climbing into the top three took
+                    your name off the marked row and put it on an unmarked
+                    plinth — the one place it most needs saying. */}
+                <UI size={13} weight="bold" style={{ marginBottom: 2 }} color={p.you ? color.coral : color.ink}>
                   {p.name}
                 </UI>
+                {p.you && (
+                  <Chip
+                    label={t.leaderboard.you}
+                    size={9}
+                    background={color.coral}
+                    foreground={color.white}
+                    style={{ paddingHorizontal: 6, paddingVertical: 1, marginBottom: 2 }}
+                  />
+                )}
                 <Display size={18} style={{ fontVariant: ['tabular-nums'] }}>
                   {group(p.pts)}
                 </Display>
