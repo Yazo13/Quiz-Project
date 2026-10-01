@@ -57,3 +57,21 @@ export function startOfDays(days: number, at: number = Date.now()): number {
   d.setDate(d.getDate() - (Math.max(1, Math.floor(days)) - 1));
   return d.getTime();
 }
+
+export interface DateParts {
+  day: number;
+  /** 0-11, so it indexes a month-name table directly. */
+  month: number;
+  year: number;
+}
+
+/**
+ * A timestamp split into local calendar parts.
+ *
+ * Split rather than formatted, for the same reason `relative` is: the wording
+ * and the order of the pieces belong to the string table, not here.
+ */
+export function dateParts(at: number): DateParts {
+  const d = new Date(at);
+  return { day: d.getDate(), month: d.getMonth(), year: d.getFullYear() };
+}

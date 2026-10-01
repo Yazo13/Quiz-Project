@@ -10,7 +10,7 @@ import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tact
 import { achievements, sortForShelf } from '../../src/data/achievements';
 import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
 import { useArmed } from '../../src/hooks/useArmed';
-import { localeNames, useLocale, useSetLocale, useT, whenLabel } from '../../src/i18n';
+import { dateLabel, localeNames, useLocale, useSetLocale, useT, whenLabel } from '../../src/i18n';
 import { Locale, didWin, useAccuracy, useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
@@ -195,9 +195,7 @@ export default function ProfileScreen() {
                     {t.profile.achievements[a.id].title}
                   </UI>
                   <UI size={11} color={color.ink3}>
-                    {a.earned && a.at
-                      ? new Date(a.at).toLocaleDateString()
-                      : t.profile.achievements[a.id].note}
+                    {a.earned && a.at ? dateLabel(a.at, t) : t.profile.achievements[a.id].note}
                   </UI>
                 </View>
               </View>

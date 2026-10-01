@@ -12,6 +12,9 @@ import type { Strings } from './en';
  * button copy is kept short rather than translated literally.
  */
 export const ka: Strings = {
+  months: ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'],
+  date: (day: number, month: string, year: number) => `${day} ${month}, ${year}`,
+
   tabs: {
     arena: 'არენა',
     ranks: 'რეიტინგი',

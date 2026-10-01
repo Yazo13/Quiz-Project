@@ -13,6 +13,11 @@ import type { TxKind } from '../store/game';
  * table has to equal the English words, not merely match the shape.
  */
 export const en = {
+  /** Month abbreviations, indexed 0-11 by `dateParts`. */
+  months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  /** A whole date. A function, so the order of the pieces is translatable. */
+  date: (day: number, month: string, year: number) => `${day} ${month} ${year}`,
+
   tabs: {
     arena: 'Arena',
     ranks: 'Ranks',

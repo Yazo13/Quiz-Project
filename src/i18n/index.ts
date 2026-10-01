@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { getLocales } from 'expo-localization';
 
-import { relative } from '../lib/time';
+import { dateParts, relative } from '../lib/time';
 import { Locale, useGame } from '../store/game';
 import { en, type Strings } from './en';
 import { ka } from './ka';
@@ -26,6 +26,19 @@ export function whenLabel(at: number, when: Strings['wallet']['when']): string {
   const { unit, value } = relative(at);
   if (unit === 'now') return when.now;
   return when[unit](value);
+}
+
+/**
+ * A calendar date in the active language.
+ *
+ * Not `toLocaleDateString`, which reads the device locale: the app's language
+ * is a setting the player chose, and a Georgian app on an English phone was
+ * printing 9/4/2026 under Georgian labels. `src/lib/number.ts` exists for the
+ * same reason on the numbers.
+ */
+export function dateLabel(at: number, strings: Strings): string {
+  const { day, month, year } = dateParts(at);
+  return strings.date(day, strings.months[month], year);
 }
 
 /** The active locale. Persisted, so the choice survives a restart. */

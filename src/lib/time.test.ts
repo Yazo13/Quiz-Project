@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { formatHMS, startOfDay, startOfDays } from './time.ts';
+import { dateParts, formatHMS, startOfDay, startOfDays } from './time.ts';
 
 describe('formatHMS', () => {
   it('pads every field to two digits', () => {
@@ -69,5 +69,23 @@ describe('startOfDays', () => {
     const now = new Date(2026, 8, 25, 15, 0).getTime();
     assert.equal(startOfDays(0, now), startOfDay(now));
     assert.equal(startOfDays(-5, now), startOfDay(now));
+  });
+});
+
+describe('dateParts', () => {
+  it('splits a timestamp into local calendar pieces', () => {
+    const at = new Date(2026, 8, 25, 14, 30).getTime();
+    assert.deepEqual(dateParts(at), { day: 25, month: 8, year: 2026 });
+  });
+
+  it('numbers months from zero, so they index a name table', () => {
+    assert.equal(dateParts(new Date(2026, 0, 1).getTime()).month, 0);
+    assert.equal(dateParts(new Date(2026, 11, 31).getTime()).month, 11);
+  });
+
+  it('reads the local day, not the UTC one', () => {
+    // Just before midnight local is still today wherever this runs.
+    const at = new Date(2026, 8, 25, 23, 59).getTime();
+    assert.equal(dateParts(at).day, 25);
   });
 });
