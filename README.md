@@ -8,7 +8,7 @@ The repo holds two things:
 
 | Folder | What it is |
 | --- | --- |
-| `design/` | The hi-fi design source, imported 1:1 from the design project. Plain HTML + JSX + CSS, opens in a browser, pan/zoom canvas with all six screens side by side. This is the visual source of truth. |
+| `design/` | The hi-fi design as it was imported, 1:1, from the design project. Plain HTML + JSX + CSS, opens in a browser, pan/zoom canvas with the screens side by side. A fixed reference for the look — palette, radii, borders, type — not a live mirror of the app: it has not moved since the import, and the app has. Where they disagree, the app is the later decision. |
 | `app/`, `src/` | The real app — Expo / React Native, expo-router. |
 
 ## Stack
@@ -165,6 +165,10 @@ npm run typecheck
 ```
 
 ```bash
+npm run lint
+```
+
+```bash
 npm test
 ```
 
@@ -177,6 +181,12 @@ under `node --test` with type stripping, no test framework installed.
 
 `noUnusedLocals` and `noUnusedParameters` are on, so dead imports fail the
 typecheck rather than accumulating.
+
+Lint is `eslint-config-expo`. Two of its React rules are adjusted in
+`eslint.config.js` with the reasoning written there: `immutability` reads a
+Reanimated shared-value assignment as mutating React state, which it is not,
+and `set-state-in-effect` fires on two effects that exist precisely to sync
+state to a clock.
 
 ## State
 
