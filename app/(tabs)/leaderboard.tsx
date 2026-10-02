@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
 import { Podium } from '../../src/components/Podium';
-import { Avatar, Chip, Fire, LiveDot } from '../../src/components/Primitives';
+import { RankList } from '../../src/components/RankList';
+import { Chip, LiveDot } from '../../src/components/Primitives';
 import { TactileSurface } from '../../src/components/Tactile';
 import { Board, useStandings } from '../../src/data/standings';
 import { useT } from '../../src/i18n';
@@ -23,7 +24,6 @@ export default function LeaderboardScreen() {
   const lastRound = useGame((s) => s.rounds[0]);
   const { board, me, ahead } = useStandings(filter);
 
-  const list = board.slice(3);
 
   return (
     <View style={{ flex: 1 }}>
@@ -138,85 +138,7 @@ export default function LeaderboardScreen() {
 
         <Podium board={board} />
 
-        {/* Everyone from fourth down */}
-        <View style={{ paddingHorizontal: screenPad, paddingTop: 20 }}>
-          <TactileSurface radius={radius.soft}>
-            {list.map((p, i) => (
-              <View
-                key={p.name}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  backgroundColor: p.you ? color.goldSoft : 'transparent',
-                  borderTopWidth: i === 0 ? 0 : border.hairline,
-                  borderTopColor: color.line,
-                }}
-              >
-                <Display
-                  size={22}
-                  color={p.you ? color.coral : color.ink3}
-                  style={[textStyles.tabular, { width: 28, textAlign: 'center' }]}
-                >
-                  {String(p.rank)}
-                </Display>
-
-                <Avatar initials={p.initials} background={p.tint} size={36} />
-
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <UI size={14} weight="bold">
-                      {p.name}
-                    </UI>
-                    {p.you && (
-                      <Chip
-                        label={t.leaderboard.you}
-                        size={9}
-                        background={color.coral}
-                        foreground={color.white}
-                        style={{ paddingHorizontal: 6, paddingVertical: 1 }}
-                      />
-                    )}
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
-                    {p.streak > 0 && (
-                      <>
-                        <Fire size={11} />
-                        <UI
-                          size={11}
-                          weight="bold"
-                          color={p.streak >= 5 ? color.coral : color.ink3}
-                        >
-                          ×{p.streak}
-                        </UI>
-                        <View
-                          style={{
-                            width: 3,
-                            height: 3,
-                            borderRadius: 1.5,
-                            backgroundColor: color.ink4,
-                          }}
-                        />
-                      </>
-                    )}
-                    <UI size={11} color={color.ink3}>
-                      {t.leaderboard.accuracy(p.accuracy)}
-                    </UI>
-                  </View>
-                </View>
-
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Display size={20} style={textStyles.tabular}>
-                    {group(p.pts)}
-                  </Display>
-                  <Eyebrow size={9}>{t.leaderboard.pts}</Eyebrow>
-                </View>
-              </View>
-            ))}
-          </TactileSurface>
-        </View>
+        <RankList rows={board.slice(3)} />
       </ScrollView>
     </View>
   );

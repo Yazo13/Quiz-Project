@@ -7,8 +7,11 @@ import { border, color, radius, screenPad } from '../theme/tokens';
 import { Display, UI, textStyles } from '../theme/type';
 import { Avatar, Chip, Fire } from './Primitives';
 
-/** Fifth place and up is a long streak; below that the flame means little. */
-const HOT_STREAK = 5;
+/**
+ * A streak this long gets the flame. Both halves of the board decide it the
+ * same way, and each had the bare number written into it.
+ */
+export const HOT_STREAK = 5;
 
 /**
  * The top three, second on the left and first raised in the middle.
