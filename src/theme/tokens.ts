@@ -122,5 +122,28 @@ export const mesh = [
 ] as const;
 
 export const screenPad = 18;
-/** Height the tab bar occupies, so scroll views can clear it. */
-export const tabBarSpace = 110;
+
+/**
+ * The floating tab bar's geometry, in one place.
+ *
+ * The screens needed to know how much room to leave below their content and
+ * were given a flat 110 — which is exactly right on a notched iPhone, where
+ * the bottom inset is 34, and 22 points of dead space on anything without
+ * one. Both halves now read the same numbers.
+ */
+export const tabBar = {
+  height: 64,
+  /** Gap between the bar and the bottom inset. */
+  gap: 8,
+  /** Minimum bottom offset, for devices that report no inset. */
+  insetFloor: 12,
+  /** How far the bar is inset from the screen's sides. */
+  sideInset: 12,
+};
+
+/** Room a scroll view has to leave below its content to clear the tab bar. */
+export function tabBarSpace(insetBottom: number): number {
+  return (
+    tabBar.height + Math.max(insetBottom, tabBar.insetFloor) + tabBar.gap + depth
+  );
+}

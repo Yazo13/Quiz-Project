@@ -38,7 +38,7 @@ export default function WalletScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace }}
+        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace(insets.bottom) }}
       >
         <View style={{ paddingHorizontal: screenPad }}>
           <Eyebrow size={11}>{t.wallet.eyebrow}</Eyebrow>

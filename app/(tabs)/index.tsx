@@ -111,7 +111,7 @@ export default function ArenaScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabBarSpace }}
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: tabBarSpace(insets.bottom) }}
       >
         {/* Identity + balance */}
         <View

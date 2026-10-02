@@ -34,7 +34,7 @@ export default function LeaderboardScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace }}
+        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace(insets.bottom) }}
       >
         {/* Header */}
         <View

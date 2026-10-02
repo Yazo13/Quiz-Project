@@ -85,7 +85,7 @@ export default function ProfileScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace }}
+        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: tabBarSpace(insets.bottom) }}
       >
         <View style={{ paddingHorizontal: screenPad }}>
           <Eyebrow size={11}>{t.profile.eyebrow}</Eyebrow>

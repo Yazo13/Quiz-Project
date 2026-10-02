@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { useLocale, useT } from '../i18n';
-import { border, color, depth, fontSets, radius, typeMetrics } from '../theme/tokens';
+import { border, color, depth, fontSets, radius, tabBar, typeMetrics } from '../theme/tokens';
 
 const icons: Record<string, string> = {
   index: 'M3 11l9-8 9 8v10H3z',
@@ -39,9 +39,9 @@ export function TabBar({ state, navigation }: TabBarProps) {
     <View
       style={{
         position: 'absolute',
-        left: 12,
-        right: 12,
-        bottom: Math.max(insets.bottom, 12) + 8,
+        left: tabBar.sideInset,
+        right: tabBar.sideInset,
+        bottom: Math.max(insets.bottom, tabBar.insetFloor) + tabBar.gap,
       }}
     >
       <View
@@ -58,7 +58,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
       />
       <View
         style={{
-          height: 64,
+          height: tabBar.height,
           borderRadius: radius.soft,
           backgroundColor: color.ink,
           borderWidth: border.thick,
