@@ -4,23 +4,21 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MeshBackground } from '../../src/components/MeshBackground';
+import { TrophyShelf } from '../../src/components/TrophyShelf';
 import { Avatar, Chip, DottedRule, Fire } from '../../src/components/Primitives';
 import { Segmented } from '../../src/components/Segmented';
 import { Tactile, TactileLabel, TactileSurface } from '../../src/components/Tactile';
 import { achievements, sortForShelf } from '../../src/data/achievements';
 import { PLAYER_INITIALS, PLAYER_NAME, useStandings } from '../../src/data/standings';
 import { useArmed } from '../../src/hooks/useArmed';
-import { dateLabel, localeNames, useLocale, useSetLocale, useT, whenLabel } from '../../src/i18n';
+import { localeNames, useLocale, useSetLocale, useT, whenLabel } from '../../src/i18n';
 import { Locale, didWin, useAccuracy, useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
 import { Display, Eyebrow, UI } from '../../src/theme/type';
 
-const trophyTints = [color.gold2, color.forest, color.coral, color.sky2, color.gold];
-
 /** How many past rounds the shelf shows before it stops being a summary. */
 const RECENT_ROUNDS = 5;
 
-const trophyTint = (i: number) => trophyTints[i % trophyTints.length];
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -50,7 +48,6 @@ export default function ProfileScreen() {
       ),
     [roundHistory, tokens, trophies, career.rounds],
   );
-  const locked = shelf.filter((a) => !a.earned).length;
   const recent = roundHistory.slice(0, RECENT_ROUNDS);
   const haptics = useGame((st) => st.haptics);
   const setHaptics = useGame((st) => st.setHaptics);
@@ -134,74 +131,7 @@ export default function ProfileScreen() {
           </TactileSurface>
         </View>
 
-        {/* Trophies */}
-        <View style={{ paddingHorizontal: screenPad, paddingTop: 24 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              marginBottom: 10,
-            }}
-          >
-            <Display size={22}>{t.profile.trophies}</Display>
-            {locked > 0 && (
-              <UI size={11} weight="semibold" color={color.ink3}>
-                {t.profile.lockedTrophies(locked)}
-              </UI>
-            )}
-          </View>
-          <View style={{ gap: 10 }}>
-            {shelf.map((a, i) => (
-              <View
-                key={a.id}
-                accessibilityLabel={`${t.profile.achievements[a.id].title} — ${t.profile.achievements[a.id].note}`}
-                accessibilityState={{ disabled: !a.earned }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  backgroundColor: a.earned ? color.surface : color.bgCream,
-                  borderWidth: border.medium,
-                  borderColor: color.lineStrong,
-                  borderRadius: i % 2 === 0 ? radius.sharp : radius.soft,
-                  // Unearned entries stay legible but visibly not yours yet.
-                  opacity: a.earned ? 1 : 0.55,
-                }}
-              >
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: a.earned ? trophyTint(i) : 'transparent',
-                    borderWidth: border.thin,
-                    borderStyle: a.earned ? 'solid' : 'dashed',
-                    borderColor: color.lineStrong,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {!a.earned && a.progress && (
-                    <UI size={10} weight="bold" color={color.ink3}>
-                      {a.progress.have}
-                    </UI>
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <UI size={14} weight="bold">
-                    {t.profile.achievements[a.id].title}
-                  </UI>
-                  <UI size={11} color={color.ink3}>
-                    {a.earned && a.at ? dateLabel(a.at, t) : t.profile.achievements[a.id].note}
-                  </UI>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
+        <TrophyShelf shelf={shelf} />
 
         {/* Recent rounds — the store has kept this history all along and
             nothing showed it. */}
