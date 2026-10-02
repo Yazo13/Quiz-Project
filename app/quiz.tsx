@@ -77,7 +77,9 @@ export default function QuizScreen() {
   // precision a player can read anyway.
   const progress = useSharedValue(1);
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
-  const deadline = useRef(Date.now() + TIME_LIMIT * 1000);
+  // Set by the per-question effect below before anything reads it; seeding it
+  // from the clock here would be both dead and an impure render.
+  const deadline = useRef(0);
 
   const stopTimers = useCallback(() => {
     if (tick.current) clearInterval(tick.current);

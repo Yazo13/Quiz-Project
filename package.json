@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test \"src/**/*.test.ts\"",
-    "design": "npx --yes serve design"
+    "design": "npx --yes serve design",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@expo-google-fonts/bebas-neue": "^0.4.1",
@@ -45,6 +46,8 @@
   "devDependencies": {
     "@types/node": "^24.13.4",
     "@types/react": "~19.2.4",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^57.0.2",
     "typescript": "~6.0.3"
   }
 }

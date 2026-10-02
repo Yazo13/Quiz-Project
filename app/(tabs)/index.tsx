@@ -43,9 +43,16 @@ const GRAND_BASE = 3402;
 export default function ArenaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Simulated until there is a presence endpoint — see src/data/presence.ts.
+  // It is also the clock the schedule is read against: reading Date.now()
+  // here instead would make the render impure, and the tick is state.
+  const now = usePresenceClock();
+
   // The schedule is derived from the clock rather than counted from a fixed
-  // duration, so the countdown survives leaving the tab and coming back.
-  const { startsAt, live } = tournamentAt(Date.now());
+  // duration, so the countdown survives leaving the tab and coming back. The
+  // countdown reaching zero is what flips the seat over, so a tick slower
+  // than a second is enough to notice a sitting opening.
+  const { startsAt, live } = tournamentAt(now);
   const { seconds: total, done } = useCountdownTo(startsAt);
   const started = live || done;
   const { h, m, s } = formatHMS(total);
@@ -54,9 +61,6 @@ export default function ArenaScreen() {
   const [category, setCategory] = useState<string | null>(null);
   const t = useT();
 
-
-  // Simulated until there is a presence endpoint — see src/data/presence.ts.
-  const now = usePresenceClock();
 
   const tokens = useGame((s) => s.tokens);
   const joined = useGame((s) => s.joined.includes(GRAND_ID));
