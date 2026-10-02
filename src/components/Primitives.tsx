@@ -40,7 +40,16 @@ export function Coin({ size = 18 }: { size?: number }) {
   );
 }
 
-/** Initials avatar with the house border. */
+/**
+ * Initials avatar with the house border.
+ *
+ * Hidden from the accessibility tree. Every one of these sits next to the
+ * name it abbreviates — on the podium, in the rank list, in the profile's
+ * identity card — so a screen reader was reading "L M, Lasha M." The tab
+ * glyphs are hidden for the same reason. The quiz's row of opponents has no
+ * names beside it, but the "+1,280 playing now" next to them says what they
+ * are, which four sets of initials do not.
+ */
 export function Avatar({
   initials,
   background = color.forest,
@@ -54,6 +63,8 @@ export function Avatar({
 }) {
   return (
     <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
       style={{
         width: size,
         height: size,
