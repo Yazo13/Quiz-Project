@@ -20,7 +20,7 @@ import { useT } from '../../src/i18n';
 import { formatHMS } from '../../src/lib/time';
 import { DAILY_TOKENS, ENTRY_COST, dailyAvailable, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
-import { Display, Eyebrow, UI } from '../../src/theme/type';
+import { Display, Eyebrow, UI, textStyles } from '../../src/theme/type';
 
 /** Baseline for the arena-wide figure; the rest drift around their own. */
 const LIVE_BASE = 12408;
@@ -289,7 +289,7 @@ export default function ArenaScreen() {
                       alignItems: 'center',
                     }}
                   >
-                    <Display size={36} style={{ fontVariant: ['tabular-nums'] }}>
+                    <Display size={36} style={textStyles.tabular}>
                       {unit.v}
                     </Display>
                     <Eyebrow size={9} style={{ letterSpacing: 1.4, marginTop: 2 }}>

@@ -23,7 +23,7 @@ import { useLocale, useT } from '../src/i18n';
 import { failed, succeeded, tapped, warned } from '../src/lib/feedback';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
-import { Display, Eyebrow, UI } from '../src/theme/type';
+import { Display, Eyebrow, UI, textStyles } from '../src/theme/type';
 
 /**
  * The faces on the "playing now" row. Taken from the roster the leaderboard
@@ -371,7 +371,7 @@ export default function QuizScreen() {
             <Display
               size={28}
               color={urgent ? color.coral : color.ink}
-              style={{ width: 56, textAlign: 'right', fontVariant: ['tabular-nums'] }}
+              style={[textStyles.tabular, { width: 56, textAlign: 'right' }]}
             >
               {timeLeft.toFixed(1)}s
             </Display>

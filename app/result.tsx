@@ -14,7 +14,7 @@ import { useReducedMotion } from '../src/hooks/useReducedMotion';
 import { useT } from '../src/i18n';
 import { ENTRY_COST, didWin, roundPoints, useGame } from '../src/store/game';
 import { color, radius, screenPad } from '../src/theme/tokens';
-import { Display, Eyebrow } from '../src/theme/type';
+import { Display, Eyebrow, textStyles } from '../src/theme/type';
 
 export default function ResultScreen() {
   const router = useRouter();
@@ -147,7 +147,7 @@ export default function ResultScreen() {
                     <Display
                       size={26}
                       color={s.tint ?? (won ? color.gold : color.ink)}
-                      style={{ fontVariant: ['tabular-nums'] }}
+                      style={textStyles.tabular}
                     >
                       {s.v}
                     </Display>

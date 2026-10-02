@@ -13,7 +13,7 @@ import { succeeded } from '../../src/lib/feedback';
 import { group } from '../../src/lib/number';
 import { useGame, useWeeklyEarned } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
-import { Display, Eyebrow, UI } from '../../src/theme/type';
+import { Display, Eyebrow, UI, textStyles } from '../../src/theme/type';
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
@@ -87,7 +87,7 @@ export default function WalletScreen() {
                 {t.wallet.balance}
               </Eyebrow>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginTop: 4 }}>
-                <Display size={64} color={color.gold} style={{ fontVariant: ['tabular-nums'] }}>
+                <Display size={64} color={color.gold} style={textStyles.tabular}>
                   {group(tokens)}
                 </Display>
                 <View style={{ paddingBottom: 8 }}>

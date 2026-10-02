@@ -6,7 +6,7 @@ import { useT } from '../i18n';
 import { tapped } from '../lib/feedback';
 import { group } from '../lib/number';
 import { border, color, radius, screenPad } from '../theme/tokens';
-import { Display, Eyebrow, UI } from '../theme/type';
+import { Display, Eyebrow, UI, textStyles } from '../theme/type';
 import { Coin } from './Primitives';
 import { TactileSurface } from './Tactile';
 
@@ -65,7 +65,7 @@ export function PackGrid({ onBuy }: { onBuy: (amount: number) => void }) {
                       </UI>
                     )}
                   </View>
-                  <Display size={36} color={v.fg} style={{ fontVariant: ['tabular-nums'] }}>
+                  <Display size={36} color={v.fg} style={textStyles.tabular}>
                     {group(p.tokens)}
                   </Display>
                   <Eyebrow

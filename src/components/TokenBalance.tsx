@@ -14,7 +14,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useT } from '../i18n';
 import { group } from '../lib/number';
 import { border, color, radius } from '../theme/tokens';
-import { UI } from '../theme/type';
+import { UI, textStyles } from '../theme/type';
 import { Coin } from './Primitives';
 
 const HALO_PAD = 22;
@@ -100,7 +100,7 @@ export function TokenBalance({ amount, onPress }: { amount: number; onPress?: ()
           }}
         >
           <Coin size={18} />
-          <UI size={14} weight="bold" style={{ fontVariant: ['tabular-nums'] }}>
+          <UI size={14} weight="bold" style={textStyles.tabular}>
             {group(amount)}
           </UI>
         </View>

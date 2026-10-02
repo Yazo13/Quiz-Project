@@ -87,5 +87,10 @@ export function Eyebrow({ size = 11, color: c = color.ink3, style, ...rest }: Ba
 }
 
 export const textStyles = StyleSheet.create({
+  /**
+   * Fixed-width digits, for any number that changes in place — a countdown, a
+   * balance, a points total. Without it the whole figure shifts sideways as
+   * the digits change, because a 1 is narrower than a 0.
+   */
   tabular: { fontVariant: ['tabular-nums'] },
 });

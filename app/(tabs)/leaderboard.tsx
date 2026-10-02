@@ -10,7 +10,7 @@ import { useT } from '../../src/i18n';
 import { group } from '../../src/lib/number';
 import { useGame } from '../../src/store/game';
 import { border, color, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
-import { Display, Eyebrow, UI } from '../../src/theme/type';
+import { Display, Eyebrow, UI, textStyles } from '../../src/theme/type';
 
 const filters: Board[] = ['today', 'weekly', 'grand', 'friends'];
 
@@ -99,7 +99,7 @@ export default function LeaderboardScreen() {
                 </UI>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Display size={24} color={color.white} style={{ fontVariant: ['tabular-nums'] }}>
+                <Display size={24} color={color.white} style={textStyles.tabular}>
                   {group(me.pts)}
                 </Display>
                 <Eyebrow size={9} color="rgba(255,255,255,0.6)">
@@ -180,7 +180,7 @@ export default function LeaderboardScreen() {
                     style={{ paddingHorizontal: 6, paddingVertical: 1, marginBottom: 2 }}
                   />
                 )}
-                <Display size={18} style={{ fontVariant: ['tabular-nums'] }}>
+                <Display size={18} style={textStyles.tabular}>
                   {group(p.pts)}
                 </Display>
 
@@ -244,7 +244,7 @@ export default function LeaderboardScreen() {
                 <Display
                   size={22}
                   color={p.you ? color.coral : color.ink3}
-                  style={{ width: 28, textAlign: 'center', fontVariant: ['tabular-nums'] }}
+                  style={[textStyles.tabular, { width: 28, textAlign: 'center' }]}
                 >
                   {String(p.rank)}
                 </Display>
@@ -294,7 +294,7 @@ export default function LeaderboardScreen() {
                 </View>
 
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Display size={20} style={{ fontVariant: ['tabular-nums'] }}>
+                  <Display size={20} style={textStyles.tabular}>
                     {group(p.pts)}
                   </Display>
                   <Eyebrow size={9}>{t.leaderboard.pts}</Eyebrow>
