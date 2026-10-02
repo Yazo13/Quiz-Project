@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -102,7 +102,10 @@ function MeshBlob({
     transform: [{ translateX: t.value * 26 * dx }, { translateY: t.value * 20 * dy }],
   }));
 
-  const id = `mesh-${tint.slice(1)}`;
+  // Namespaced by tint AND by instance: the field is on every screen, and
+  // expo-router keeps the tab screens mounted, so several MeshBackgrounds
+  // share one document on web.
+  const id = `mesh-${tint.slice(1)}-${useId()}`;
 
   return (
     <Animated.View style={[{ position: 'absolute', left, top, width: size, height: size }, drift]}>

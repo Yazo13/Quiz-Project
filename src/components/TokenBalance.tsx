@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
   Easing,
@@ -33,6 +33,9 @@ export function TokenBalance({ amount, onPress }: { amount: number; onPress?: ()
   const label = strings.wallet.tokens;
   const reduced = useReducedMotion();
   const t = useSharedValue(0);
+  // Per instance: SVG ids are document-global on web, and the arena header
+  // and the wallet can both be mounted at once.
+  const haloId = `token-halo-${useId()}`;
 
   useEffect(() => {
     if (reduced) {
@@ -76,13 +79,13 @@ export function TokenBalance({ amount, onPress }: { amount: number; onPress?: ()
         >
           <Svg width="100%" height="100%">
             <Defs>
-              <RadialGradient id="token-halo" cx="50%" cy="50%" r="50%">
+              <RadialGradient id={haloId} cx="50%" cy="50%" r="50%">
                 <Stop offset="0.35" stopColor={color.gold} stopOpacity="0.55" />
                 <Stop offset="0.7" stopColor={color.gold} stopOpacity="0.22" />
                 <Stop offset="1" stopColor={color.gold} stopOpacity="0" />
               </RadialGradient>
             </Defs>
-            <Rect width="100%" height="100%" fill="url(#token-halo)" />
+            <Rect width="100%" height="100%" fill={`url(#${haloId})`} />
           </Svg>
         </Animated.View>
         <View

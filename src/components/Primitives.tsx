@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import Animated, {
   Easing,
@@ -14,18 +14,27 @@ import { useLocale } from '../i18n';
 import { border, color, radius, typeMetrics } from '../theme/tokens';
 import { UI } from '../theme/type';
 
-/** The token coin — a gold sphere with a rim light and a dark rim. */
+/**
+ * The token coin — a gold sphere with a rim light and a dark rim.
+ *
+ * The gradient id comes from useId because on web these are real SVG
+ * elements in one document, and eight coins can be on screen at once. A
+ * fixed id would put eight of them in the document and every reference would
+ * resolve to the first. Scene.tsx namespaces its own for the same reason.
+ */
 export function Coin({ size = 18 }: { size?: number }) {
+  const id = `coin-${useId()}`;
+
   return (
     <Svg width={size} height={size} viewBox="0 0 20 20">
       <Defs>
-        <RadialGradient id="coin" cx="0.32" cy="0.3" r="0.85">
+        <RadialGradient id={id} cx="0.32" cy="0.3" r="0.85">
           <Stop offset="0" stopColor="#FFE38A" />
           <Stop offset="0.55" stopColor="#F0B23E" />
           <Stop offset="1" stopColor="#B47A14" />
         </RadialGradient>
       </Defs>
-      <Circle cx="10" cy="10" r="9.2" fill="url(#coin)" stroke="#B47A14" strokeWidth="1.4" />
+      <Circle cx="10" cy="10" r="9.2" fill={`url(#${id})`} stroke="#B47A14" strokeWidth="1.4" />
       <Path d="M4 14a7 7 0 0012 0" fill="rgba(0,0,0,0.14)" />
     </Svg>
   );
