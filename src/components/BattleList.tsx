@@ -19,12 +19,15 @@ import { Chip, CompassMark, Fire } from './Primitives';
 export function BattleList({
   category,
   now,
+  refused,
   onEnter,
 }: {
   /** The prize category selected in the scroller, or null for all of them. */
   category: string | null;
   /** The presence clock, so the player counts drift with the rest. */
   now: number;
+  /** Key of the battle last refused for want of tokens, if any. */
+  refused?: string | null;
   onEnter: (battle: Battle) => void;
 }) {
   const t = useT();
@@ -64,9 +67,15 @@ export function BattleList({
           <Pressable
             key={b.key}
             accessibilityRole="button"
-            accessibilityLabel={`${t.arena.battles[b.key]} · ${t.arena.playing(
-              presenceAt(b.players, seedFor(b.key), now),
-            )}`}
+            // The refusal is a colour change on one line otherwise, which
+            // is nothing at all to a screen reader.
+            accessibilityLabel={
+              refused === b.key
+                ? `${t.arena.battles[b.key]} — ${t.arena.notEnough}`
+                : `${t.arena.battles[b.key]} · ${t.arena.playing(
+                    presenceAt(b.players, seedFor(b.key), now),
+                  )}`
+            }
             onPress={() => onEnter(b)}
           >
             <View
@@ -101,10 +110,20 @@ export function BattleList({
                   {t.arena.battles[b.key]}
                 </UI>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                  <UI size={11} weight="semibold" color={color.ink3}>
-                    {t.arena.playing(presenceAt(b.players, seedFor(b.key), now))}
-                  </UI>
-                  {b.hot && <Fire size={12} />}
+                  {/* The refusal replaces the crowd figure on the row that
+                      was pressed, which is where the player is looking. */}
+                  {refused === b.key ? (
+                    <UI size={11} weight="bold" color={color.coral}>
+                      {t.arena.notEnough}
+                    </UI>
+                  ) : (
+                    <>
+                      <UI size={11} weight="semibold" color={color.ink3}>
+                        {t.arena.playing(presenceAt(b.players, seedFor(b.key), now))}
+                      </UI>
+                      {b.hot && <Fire size={12} />}
+                    </>
+                  )}
                 </View>
               </View>
 

@@ -17,6 +17,7 @@ import { PLAYER_INITIALS, PLAYER_NAME } from '../../src/data/rivals';
 import { GRAND_ID, seatFor, tournamentAt } from '../../src/data/tournament';
 import { useCountdownTo } from '../../src/hooks/useCountdown';
 import { useT } from '../../src/i18n';
+import { warned } from '../../src/lib/feedback';
 import { formatHMS } from '../../src/lib/time';
 import { DAILY_TOKENS, ENTRY_COST, dailyAvailable, useGame } from '../../src/store/game';
 import { border, color, depth, radius, screenPad, tabBarSpace } from '../../src/theme/tokens';
@@ -92,11 +93,23 @@ export default function ArenaScreen() {
     setShort(true);
   };
 
+  /**
+   * Which battle was last refused for want of tokens.
+   *
+   * The refusal used to set the same flag the tournament seat reads, so
+   * tapping a battle you could not afford changed the label on a different
+   * button further up the screen and did nothing at all to the row you
+   * pressed. It read as a dead control.
+   */
+  const [refused, setRefused] = useState<string | null>(null);
+
   const enterBattle = (battle: Battle) => {
     if (!spend('entry', ENTRY_COST, t.arena.battles[battle.key])) {
-      setShort(true);
+      setRefused(battle.key);
+      warned();
       return;
     }
+    setRefused(null);
     router.push(quizHref(battle));
   };
 
@@ -408,7 +421,12 @@ export default function ArenaScreen() {
           </ScrollView>
         </View>
 
-        <BattleList category={category} now={now} onEnter={enterBattle} />
+        <BattleList
+          category={category}
+          now={now}
+          refused={refused}
+          onEnter={enterBattle}
+        />
       </ScrollView>
     </View>
   );
