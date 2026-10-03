@@ -21,6 +21,7 @@ import { presenceAt, seedFor, usePresenceClock } from '../src/data/presence';
 import { rivals } from '../src/data/rivals';
 import { useLocale, useT } from '../src/i18n';
 import { failed, succeeded, tapped, warned } from '../src/lib/feedback';
+import { pick } from '../src/lib/random';
 import { POWERUP_COST, roundPoints, useGame } from '../src/store/game';
 import { border, color, depth, radius } from '../src/theme/tokens';
 import { Display, Eyebrow, UI, textStyles } from '../src/theme/type';
@@ -283,8 +284,7 @@ export default function QuizScreen() {
       return;
     }
     const wrong = [0, 1, 2, 3].filter((i) => i !== question.correct);
-    const drop = wrong.sort(() => Math.random() - 0.5).slice(0, 2);
-    setStruck(drop);
+    setStruck(pick(wrong, 2));
     tapped();
   };
 

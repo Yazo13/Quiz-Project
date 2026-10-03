@@ -1,4 +1,5 @@
 import type { Locale } from '../store/game';
+import { shuffle } from '../lib/random.ts';
 
 /**
  * Placeholder bank.
@@ -621,15 +622,6 @@ export function asCategory(value: unknown): CategoryKey | undefined {
 export function bankFor(subject?: CategoryKey): Question[] {
   if (!subject) return questions;
   return questions.filter((q) => q.category === subject);
-}
-
-/** Fisher-Yates, in place. */
-function shuffle<T>(items: T[]): T[] {
-  for (let i = items.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [items[i], items[j]] = [items[j], items[i]];
-  }
-  return items;
 }
 
 /**
