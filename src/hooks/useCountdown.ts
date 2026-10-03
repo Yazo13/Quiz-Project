@@ -16,25 +16,29 @@ export interface Countdown {
  * clock, so remounting, backgrounding the app or leaving it open overnight
  * all give the honest answer.
  *
+ * What is in state is the clock, not the count. The count is derived, so a
+ * deadline that moves is reflected on the next render rather than needing the
+ * effect to push a new number in — and the effect does nothing but subscribe,
+ * which is all an effect should do.
+ *
  * Timers are throttled or stopped outright while the app is in the
- * background, so the clock is also resynced whenever it comes back.
+ * background, hence the resync when it comes back.
  */
 export function useCountdownTo(deadline: number): Countdown {
-  const left = () => Math.max(0, Math.round((deadline - Date.now()) / 1000));
-  const [seconds, setSeconds] = useState(left);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    setSeconds(left());
-    const id = setInterval(() => setSeconds(left()), 1000);
+    const read = () => setNow(Date.now());
+    const id = setInterval(read, 1000);
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') setSeconds(left());
+      if (state === 'active') read();
     });
     return () => {
       clearInterval(id);
       sub.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deadline]);
+  }, []);
 
+  const seconds = Math.max(0, Math.round((deadline - now) / 1000));
   return { seconds, done: seconds <= 0 };
 }
