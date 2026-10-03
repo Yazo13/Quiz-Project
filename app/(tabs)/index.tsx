@@ -72,15 +72,16 @@ export default function ArenaScreen() {
 
   const lastDailyAt = useGame((s) => s.lastDailyAt);
   const claimDaily = useGame((s) => s.claimDaily);
-  // Recomputed each render rather than cached: the screen is long-lived and
-  // the answer changes at midnight without anything else changing.
-  const [dailyTaken, setDailyTaken] = useState(false);
-  const dailyOpen = !dailyTaken && dailyAvailable(lastDailyAt);
-
-  const takeDaily = () => {
-    claimDaily();
-    setDailyTaken(true);
-  };
+  /**
+   * Recomputed each render rather than cached: the screen is long-lived and
+   * the answer changes at midnight without anything else changing. It used to
+   * say that and then cache it in a `dailyTaken` flag that nothing reset, so
+   * an app left open overnight never offered the next day's bonus.
+   *
+   * Claiming writes lastDailyAt, which closes the row on its own, and the
+   * clock is the one the rest of the screen reads so the render stays pure.
+   */
+  const dailyOpen = dailyAvailable(lastDailyAt, now);
 
   // The seat is bought once per sitting; re-entering that sitting is free.
   const enterGrand = () => {
@@ -144,7 +145,7 @@ export default function ArenaScreen() {
               variant="gold"
               height={52}
               radius={radius.soft}
-              onPress={takeDaily}
+              onPress={claimDaily}
               accessibilityLabel={`${t.arena.daily} — ${t.arena.dailyClaim(DAILY_TOKENS)}`}
             >
               <Coin size={18} />
