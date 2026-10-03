@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { LIVE_MINUTES, START_HOUR, tournamentAt } from './tournament.ts';
+import { GRAND_ID, LIVE_MINUTES, START_HOUR, seatFor, tournamentAt } from './tournament.ts';
 
 /** A local-time timestamp, so the test reads the way the schedule does. */
 const at = (day: number, h: number, m = 0, s = 0) =>
@@ -46,5 +46,25 @@ describe('tournamentAt', () => {
       assert.ok(secondsUntil < previous, `minute ${m} did not advance`);
       previous = secondsUntil;
     }
+  });
+});
+
+describe('seatFor', () => {
+  it('gives each sitting its own seat', () => {
+    // The bug: one id meant one entry fee bought every evening after it.
+    const today = tournamentAt(at(24, 9, 0)).startsAt;
+    const tomorrow = tournamentAt(at(24, 23, 0)).startsAt;
+    assert.notEqual(today, tomorrow);
+    assert.notEqual(seatFor(today), seatFor(tomorrow));
+  });
+
+  it('gives the same seat all the way through one run-up', () => {
+    const morning = seatFor(tournamentAt(at(24, 7, 0)).startsAt);
+    const evening = seatFor(tournamentAt(at(24, 19, 59)).startsAt);
+    assert.equal(morning, evening, 'paying in the morning has to still count');
+  });
+
+  it('still names the tournament it belongs to', () => {
+    assert.ok(seatFor(1).startsWith(GRAND_ID));
   });
 });

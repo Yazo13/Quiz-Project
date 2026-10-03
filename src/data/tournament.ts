@@ -64,3 +64,15 @@ export function tournamentAt(at: number = Date.now()): Tournament {
     secondsUntil: Math.max(0, Math.round((startsAt - at) / 1000)),
   };
 }
+
+/**
+ * The id of one sitting's seat.
+ *
+ * The seat used to be bought against the tournament's own id, once, and kept
+ * forever — which was right while this was a single fixture with a single
+ * start time. It runs every evening now, so one id meant one 50-token entry
+ * bought the player every sitting from then on, free.
+ */
+export function seatFor(startsAt: number): string {
+  return `${GRAND_ID}:${startsAt}`;
+}

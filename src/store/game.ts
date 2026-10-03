@@ -75,6 +75,12 @@ export function dailyAvailable(lastDailyAt: number | null, now = Date.now()) {
  * had to stop being the same number.
  */
 const ROUND_HISTORY = 30;
+/**
+ * How many paid seats are remembered. Only the current sitting's is ever
+ * looked up; the rest are kept so a player who paid and backed out can still
+ * walk in, and so the list cannot grow without end.
+ */
+const SEATS_KEPT = 10;
 /** How far back the per-day tally is kept. A fortnight past the weekly board. */
 const DAILY_KEPT_DAYS = 21;
 /** Today and the six days before it, which is what a weekly figure means. */
@@ -209,7 +215,11 @@ interface GameState {
    */
   trophies: Record<string, number>;
   career: Career;
-  /** Tournament ids the player has paid into. */
+  /**
+   * Seats the player has paid for, newest last. One per sitting rather than
+   * one per tournament, so it grows — capped, because a seat for a sitting
+   * that has already run is of no further use to anyone.
+   */
   joined: string[];
   /** When the daily bonus was last taken. Null until the first claim. */
   lastDailyAt: number | null;
@@ -334,7 +344,7 @@ export const useGame = create<GameState>()(
       joinTournament: (id, cost, detail) => {
         if (get().joined.includes(id)) return true;
         if (!get().spend('entry', cost, detail)) return false;
-        set((s) => ({ joined: [...s.joined, id] }));
+        set((s) => ({ joined: [...s.joined, id].slice(-SEATS_KEPT) }));
         return true;
       },
 

@@ -14,7 +14,7 @@ import { TokenBalance } from '../../src/components/TokenBalance';
 import { type Battle, battleCount, quizHref } from '../../src/data/battles';
 import { presenceAt, seedFor, usePresenceClock } from '../../src/data/presence';
 import { PLAYER_INITIALS, PLAYER_NAME } from '../../src/data/rivals';
-import { GRAND_ID, tournamentAt } from '../../src/data/tournament';
+import { GRAND_ID, seatFor, tournamentAt } from '../../src/data/tournament';
 import { useCountdownTo } from '../../src/hooks/useCountdown';
 import { useT } from '../../src/i18n';
 import { formatHMS } from '../../src/lib/time';
@@ -63,7 +63,9 @@ export default function ArenaScreen() {
 
 
   const tokens = useGame((s) => s.tokens);
-  const joined = useGame((s) => s.joined.includes(GRAND_ID));
+  // This sitting's seat, not the tournament's — it runs every evening.
+  const seat = seatFor(startsAt);
+  const joined = useGame((s) => s.joined.includes(seat));
   const joinTournament = useGame((s) => s.joinTournament);
   const spend = useGame((s) => s.spend);
   const [short, setShort] = useState(false);
@@ -80,9 +82,9 @@ export default function ArenaScreen() {
     setDailyTaken(true);
   };
 
-  // The seat is bought once; entering again afterwards is free.
+  // The seat is bought once per sitting; re-entering that sitting is free.
   const enterGrand = () => {
-    if (joined || joinTournament(GRAND_ID, ENTRY_COST, t.arena.grandTournament)) {
+    if (joined || joinTournament(seat, ENTRY_COST, t.arena.grandTournament)) {
       router.push('/quiz');
       return;
     }
